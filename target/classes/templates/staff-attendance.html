@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content})}">
+<head>
+    <title>Attendance Control - ResolveIT</title>
+</head>
+<body>
+    <div th:fragment="content" class="max-w-4xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-1">
+                <h1 class="text-3xl font-black tracking-tighter text-gray-900 dark:text-white uppercase">Operational Readiness</h1>
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Shift State & Presence Management</p>
+            </div>
+            
+            <div th:if="${param.success != null}" class="bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-xl border border-emerald-100 dark:border-emerald-800 animate-bounce">
+                <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest" th:text="${param.success[0]}">Success</p>
+            </div>
+        </div>
+
+        <!-- Attendance Action Card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] border dark:border-gray-700 shadow-2xl shadow-indigo-500/5 flex flex-col items-center justify-center text-center space-y-6 relative overflow-hidden group">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 dark:bg-indigo-900/20 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                
+                <div class="w-24 h-24 bg-indigo-600 text-white rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 relative z-10 transition-transform group-hover:rotate-6">
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+
+                <div class="space-y-2 relative z-10">
+                    <h2 class="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Deployment Status</h2>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Update your current active shift state</p>
+                </div>
+
+                <div class="flex gap-4 pt-4 relative z-10">
+                    <form th:action="@{/staff/attendance/mark}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" name="status" value="IN">
+                        <button type="submit" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">Check In</button>
+                    </form>
+                    <form th:action="@{/staff/attendance/mark}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                        <input type="hidden" name="status" value="OUT">
+                        <button type="submit" class="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-rose-500/20 active:scale-95 transition-all">Check Out</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Current State Card -->
+            <div class="bg-gray-900 dark:bg-gray-950 p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between text-white relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent"></div>
+                <div class="relative z-10 space-y-1">
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Last Transmission</p>
+                    <h3 class="text-3xl font-black uppercase" th:text="${history.size() > 0 ? history[0].status : 'STANDBY'}">STANDBY</h3>
+                </div>
+                
+                <div class="relative z-10 pt-12">
+                    <div th:if="${history.size() > 0}" class="space-y-4">
+                        <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                            <span class="text-[10px] font-black text-white/40 uppercase tracking-widest">Timestamp</span>
+                            <span class="text-xs font-bold" th:text="${#temporals.format(history[0].timestamp, 'MMM dd, HH:mm')}">--</span>
+                        </div>
+                        <div class="flex items-center justify-between border-t border-white/10 pt-4">
+                            <span class="text-[10px] font-black text-white/40 uppercase tracking-widest">Identity</span>
+                            <span class="text-xs font-bold uppercase tracking-widest">Verified 🛡️</span>
+                        </div>
+                    </div>
+                    <div th:unless="${history.size() > 0}" class="text-xs text-white/30 italic">No attendance records found for this identifier.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Ledger -->
+        <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] border dark:border-gray-700 shadow-sm overflow-hidden">
+            <div class="px-8 py-6 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
+                <h2 class="font-black text-gray-900 dark:text-white uppercase tracking-widest text-sm">Deployment Ledger</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] border-b dark:border-gray-700">
+                            <th class="px-8 py-4">State</th>
+                            <th class="px-8 py-4">Chronology</th>
+                            <th class="px-8 py-4 text-right">Verification</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y dark:divide-gray-700">
+                        <tr th:each="h : ${history}" class="group hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                            <td class="px-8 py-5">
+                                <span class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
+                                      th:text="${h.status}"
+                                      th:classappend="${h.status == 'IN'} ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'">
+                                </span>
+                            </td>
+                            <td class="px-8 py-5 text-gray-600 dark:text-gray-400 font-bold" th:text="${#temporals.format(h.timestamp, 'EEEE, MMM dd • HH:mm:ss')}">Timestamp</td>
+                            <td class="px-8 py-5 text-right">
+                                <span class="text-[10px] font-black text-indigo-500 uppercase">Authenticated</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(history)}">
+                            <td colspan="3" class="px-8 py-12 text-center text-gray-400 italic text-xs uppercase tracking-widest">Null pointer: Ledger empty</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

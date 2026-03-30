@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="layout(content)" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResolveIT - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        // Load theme
+        const theme = localStorage.getItem("theme") || "system";
+
+        if (theme === "dark" || 
+           (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.documentElement.classList.add("dark");
+        }
+
+        function setTheme(mode) {
+            localStorage.setItem("theme", mode);
+
+            if (mode === "dark") {
+                document.documentElement.classList.add("dark");
+            } else if (mode === "light") {
+                document.documentElement.classList.remove("dark");
+            } else {
+                // system
+                if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    document.documentElement.classList.add("dark");
+                } else {
+                    document.documentElement.classList.remove("dark");
+                }
+            }
+        }
+    </script>
+    <style>
+        [th\:replace], [th\:fragment] { display: none; } /* Hide fragments in raw preview */
+    </style>
+</head>
+<body class="bg-gray-50 dark:text-gray-200 transition-colors duration-200">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex flex-col flex-shrink-0">
+            <div class="h-16 flex items-center px-6 border-b dark:border-gray-700">
+                <a href="/" class="flex items-center gap-2 group">
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold group-hover:scale-110 transition-transform">R</div>
+                    <span class="text-xl font-bold tracking-tight">ResolveIT</span>
+                </a>
+            </div>
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-3">Main Menu</div>
+                
+                <!-- Unified Dashboard Link -->
+                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                    <span>📊</span> Dashboard
+                </a>
+                <a sec:authorize="hasRole('STAFF') and !hasRole('ADMIN')" href="/staff-dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                    <span>📊</span> Dashboard
+                </a>
+                <a sec:authorize="hasRole('USER') and !hasRole('STAFF') and !hasRole('ADMIN')" href="/dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                    <span>📊</span> Dashboard
+                </a>
+
+                <!-- User Specific -->
+                <a sec:authorize="hasRole('USER') and !hasRole('STAFF')" href="/my-complaints" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <span>My Complaints</span>
+                </a>
+
+                <!-- Staff Specific -->
+                <th:block sec:authorize="hasRole('STAFF')">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-4 mb-2 px-3">Work</div>
+                    <a href="/staff/assigned" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>📥</span> My Tasks
+                    </a>
+                    <a href="/staff/all-complaints" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>🌐</span> Global Queue
+                    </a>
+                </th:block>
+
+                <!-- Admin Specific -->
+                <th:block sec:authorize="hasRole('ADMIN')">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-4 mb-2 px-3">Administration</div>
+                    <a href="/admin/users" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <span>Users</span>
+                    </a>
+                    <a href="/admin/user-complaints" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <span>Complaints List</span>
+                    </a>
+                    <a href="/admin/feedback" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>⭐</span> Feedback Monitor
+                    </a>
+                    <a href="/admin/attendance" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>📋</span> Global Staff Logs
+                    </a>
+                </th:block>
+
+                <!-- Insights (Staff & Admin) -->
+                <div sec:authorize="hasAnyRole('STAFF', 'ADMIN')" class="mt-4">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-3">Insights</div>
+                    <a href="/staff/notifications" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>🔔</span> Notifications
+                    </a>
+                    <a href="/staff/timeline" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium mt-1">
+                        <span>📅</span> Timeline
+                    </a>
+                    <a sec:authorize="hasRole('STAFF')" href="/staff/sla" class="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-red-50 text-red-600 dark:hover:bg-red-900/20 dark:text-red-400 transition-colors text-sm font-bold bg-red-50/50 dark:bg-red-900/10 mt-1">
+                        <div class="flex items-center gap-3">
+                            <span>🚨</span> SLA Monitor
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Personal -->
+                <div class="mt-4 border-t dark:border-gray-700 pt-3">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 px-3">Personal</div>
+                    <a href="/profile" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>👤</span> Profile
+                    </a>
+                    <a sec:authorize="hasRole('STAFF')" href="/staff/activity" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>📓</span> Activity Log
+                    </a>
+                    <a sec:authorize="hasRole('STAFF') or hasRole('ADMIN')" href="/staff/attendance" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                        <span>🕒</span> Attendance
+                    </a>
+                </div>
+            </nav>
+            <div class="p-4 border-t dark:border-gray-700">
+                <form id="logoutForm" th:action="@{/logout}" method="post" class="hidden"></form>
+                <a href="javascript:void(0)" onclick="document.getElementById('logoutForm').submit()" class="flex items-center gap-3 px-3 py-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <main class="flex-1 flex flex-col min-w-0 bg-gray-50">
+            <!-- Topbar -->
+            <header class="h-16 flex items-center justify-between px-8 bg-white dark:bg-gray-800 border-b dark:border-gray-700 z-10 shadow-sm">
+                <div class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    SaaS Portal / <span class="text-gray-900 dark:text-white font-semibold" th:text="${pageTitle ?: 'Dashboard'}">Dashboard</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <!-- Notifications -->
+                    <div class="relative group" id="notificationMenu">
+                        <button class="p-2 border dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50 relative">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            <span th:if="${unreadCount > 0}" th:text="${unreadCount}" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full ring-2 ring-white dark:ring-gray-800">0</span>
+                        </button>
+                        <!-- Notifications Dropdown -->
+                        <div class="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden transform origin-top-right scale-95 group-hover:scale-100">
+                            <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center">
+                                <h3 class="text-xs font-black uppercase tracking-widest text-gray-400">Notifications</h3>
+                                <span th:text="${unreadCount + ' New'}" class="text-[10px] font-bold text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full">0 New</span>
+                            </div>
+                            <div class="max-h-80 overflow-y-auto">
+                                <div th:each="n : ${notifications}" class="p-4 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                    <p class="text-xs text-gray-800 dark:text-gray-200 leading-normal" th:text="${n.message}">Message</p>
+                                    <p class="text-[10px] text-gray-400 mt-2 font-medium" th:text="${#temporals.format(n.createdAt, 'dd MMM, HH:mm')}">Time</p>
+                                </div>
+                                <div th:if="${#lists.isEmpty(notifications)}" class="p-8 text-center">
+                                    <p class="text-xs text-gray-400 font-medium">No notifications yet</p>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-gray-50 dark:bg-gray-700/30 text-center border-t dark:border-gray-700">
+                                <a href="#" onclick="markAllNotificationsRead(event)" class="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors">Mark all as read</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <div class="relative group" id="themeDropdownMenu">
+                        <button class="p-2 border dark:border-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/50">
+                            <!-- Sun Icon for Light Mode -->
+                            <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                            <!-- Moon Icon for Dark Mode -->
+                            <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div class="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden transform origin-top-right scale-95 group-hover:scale-100">
+                            <button onclick="setTheme('light')" class="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center gap-3 transition-colors active:bg-gray-100 dark:active:bg-gray-600">
+                                <span>☀️</span> Light
+                            </button>
+                            <button onclick="setTheme('dark')" class="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center gap-3 transition-colors active:bg-gray-100 dark:active:bg-gray-600">
+                                <span>🌙</span> Dark
+                            </button>
+                            <button onclick="setTheme('system')" class="w-full text-left px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center gap-3 transition-colors active:bg-gray-100 dark:active:bg-gray-600">
+                                <span>💻</span> System
+                            </button>
+                        </div>
+                    </div>
+                    <!-- User Profile Dropdown Placeholder -->
+                    <div class="flex items-center gap-3 border-l dark:border-gray-700 pl-4">
+                        <img th:src="@{'/uploads/' + ${currentUser != null && currentUser.profilePic != null ? currentUser.profilePic : 'default.png'} + '?v=' + ${#dates.createNow().getTime()}}"
+                             class="w-10 h-10 rounded-full border-2 border-primary-500 object-cover shadow-sm bg-gray-200"
+                             alt="Profile">
+                        <div class="hidden sm:block text-left">
+                            <p class="text-sm font-semibold truncate" th:text="${userName ?: 'User'}">User</p>
+                            <p class="text-xs text-gray-400 uppercase" th:text="${userRole ?: 'USER'}">USER</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="flex-1 overflow-y-auto p-6">
+                <!-- Content Injector -->
+                <div th:replace="${content}">
+                    <!-- Page-specific content goes here -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            window.markAllNotificationsRead = async function(e) {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/notifications/markAllRead', { method: 'POST' });
+                    if (res.ok) window.location.reload();
+                } catch (err) { console.error(err); }
+            };
+
+            const socket = new SockJS('/ws');
+            const stompClient = Stomp.over(socket);
+            stompClient.debug = null; // Disable logging
+
+            stompClient.connect({}, function (frame) {
+                stompClient.subscribe('/topic/updates', function (msg) {
+                    // Show a notification
+                    showNotification(msg.body);
+                });
+            });
+
+            function showNotification(message) {
+                // Check if browser supports notifications
+                if ("Notification" in window) {
+                    if (Notification.permission === "granted") {
+                        new Notification("ResolveIT Update", { body: message });
+                    } else if (Notification.permission !== "denied") {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === "granted") {
+                                new Notification("ResolveIT Update", { body: message });
+                            }
+                        });
+                    }
+                }
+                
+                // Fallback to a custom toast or simple alert if notification fails
+                alert(message);
+            }
+        });
+    </script>
+</body>
+</html>
+
