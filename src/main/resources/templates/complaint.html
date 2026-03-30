@@ -1,310 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content})}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Submit Complaint - ResolvIt</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .container {
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 500px;
-    }
-
-    h2 {
-      color: #333;
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #333;
-      font-weight: bold;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1em;
-      font-family: Arial, sans-serif;
-      transition: border-color 0.3s;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #11998e;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 1.1em;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #0f8a7a;
-    }
-
-    .links {
-      margin-top: 20px;
-      text-align: center;
-    }
-
-    .links a {
-      color: #667eea;
-      text-decoration: none;
-      margin: 0 10px;
-      transition: color 0.3s;
-    }
-
-    .links a:hover {
-      color: #5568d3;
-      text-decoration: underline;
-    }
-
-    .upload-section {
-      margin-bottom: 20px;
-    }
-
-    .upload-section label {
-      display: block;
-      margin-bottom: 8px;
-      color: #333;
-      font-weight: bold;
-      font-size: 1em;
-    }
-
-    .upload-box {
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      padding: 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s;
-      background: #fafafa;
-    }
-
-    .upload-box:hover {
-      border-color: #667eea;
-      background: #f0f2ff;
-    }
-
-    .upload-box h4 {
-      color: #333;
-      margin-bottom: 6px;
-      font-size: 1em;
-    }
-
-    .upload-box p {
-      color: #888;
-      font-size: 0.85em;
-      margin-bottom: 14px;
-    }
-
-    .upload-btn {
-      display: inline-block;
-      padding: 8px 22px;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      color: #333;
-      transition: all 0.2s;
-    }
-
-    .upload-btn:hover {
-      border-color: #667eea;
-      color: #667eea;
-    }
-
-    #file-name {
-      margin-top: 10px;
-      font-size: 0.85em;
-      color: #11998e;
-      font-weight: bold;
-    }
-
-    .visibility-group {
-      display: flex;
-      gap: 16px;
-      margin-top: 6px;
-    }
-
-    .visibility-option {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s;
-    }
-
-    .visibility-option:has(input:checked) {
-      border-color: #667eea;
-      background: #f0f2ff;
-    }
-
-    .visibility-option input[type="radio"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #667eea;
-      flex-shrink: 0;
-    }
-
-    .visibility-label-text strong {
-      display: block;
-      font-size: 0.95em;
-      color: #333;
-    }
-
-    .visibility-label-text span {
-      font-size: 0.78em;
-      color: #888;
-    }
-  </style>
+    <title>File a Complaint - ResolveIT</title>
 </head>
-
 <body>
-
-  <div class="container">
-    <h2>Submit Complaint</h2>
-
-    <form id="complaintForm" action="/form/complaint" method="post" enctype="multipart/form-data">
-      <div class="form-group">
-        <label for="subject">Subject:</label>
-        <input type="text" id="subject" name="title" placeholder="Enter complaint subject" required>
-      </div>
-
-      <div class="form-group">
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" placeholder="Describe your complaint in detail"
-          required></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="category">Category:</label>
-        <input type="text" id="category" name="category" placeholder="e.g., Service, Product, Other" required>
-      </div>
-
-      <div class="form-group">
-        <label for="urgency">Urgency Level:</label>
-        <select id="urgency" name="urgency" title="Select urgency level" required>
-          <option value="">-- Select --</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Visibility:</label>
-        <div class="visibility-group">
-          <label class="visibility-option">
-            <input type="radio" name="visibility" value="Public" checked>
-            <div class="visibility-label-text">
-              <strong>🌐 Public</strong>
-              <span>Your name will be visible</span>
-            </div>
-          </label>
-          <label class="visibility-option">
-            <input type="radio" name="visibility" value="Anonymous">
-            <div class="visibility-label-text">
-              <strong>🕵️ Anonymous</strong>
-              <span>Your identity will be hidden</span>
-            </div>
-          </label>
+    <div th:fragment="content" class="max-w-4xl mx-auto space-y-8">
+        <!-- Header -->
+        <div class="space-y-2">
+            <h1 class="text-3xl font-black tracking-tight text-gray-900 dark:text-white">Submit a Complaint</h1>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Please provide as much detail as possible to help us resolve your issue.</p>
         </div>
-      </div>
 
-      <input type="hidden" id="userId" name="userId" value="0">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Form Card -->
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl border dark:border-gray-700 shadow-sm p-8">
+                <form th:action="@{/form/complaint}" th:object="${complaint}" method="post" enctype="multipart/form-data" class="space-y-8">
+                    <!-- Hidden Fields -->
 
-      <div class="upload-section">
-        <label>Attachments (Optional)</label>
-        <div class="upload-box" onclick="document.getElementById('attachment').click()">
-          <h4>Add Media</h4>
-          <p>Attach images or files to support your complaint.</p>
-          <span class="upload-btn">Upload</span>
-          <input type="file" id="attachment" name="attachment" accept="image/*,.pdf,.doc,.docx,.txt"
-            style="display:none" onchange="showFileName(this)">
-          <div id="file-name"></div>
+                    <div class="space-y-2">
+                        <label for="subject" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title / Subject</label>
+                        <input type="text" id="subject" th:field="*{title}" placeholder="Brief summary of the issue"
+                            class="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 text-sm">
+                        <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="text-xs text-red-500 font-bold ml-1"></p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label for="description" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Detailed Description</label>
+                        <textarea id="description" th:field="*{description}" rows="6" placeholder="What happened? When? Where?"
+                            class="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all placeholder:text-gray-400 text-sm"></textarea>
+                        <p th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="text-xs text-red-500 font-bold ml-1"></p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label for="category" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Category</label>
+                            <input type="text" id="category" th:field="*{category}" placeholder="e.g. Billing, Technical"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm">
+                        </div>
+                        <div class="space-y-2">
+                            <label for="urgency" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Urgency</label>
+                            <select id="urgency" th:field="*{urgency}"
+                                class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium text-black dark:text-white">
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                                <option value="Urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Visibility</label>
+                        <div class="flex gap-4">
+                            <label class="flex-1 flex items-center gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-900/20">
+                                <input type="radio" th:field="*{visibility}" value="Public" class="accent-blue-600">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-gray-900 dark:text-white">Public</span>
+                                    <span class="text-[9px] text-gray-400 uppercase font-medium">Visible to all</span>
+                                </div>
+                            </label>
+                            <label class="flex-1 flex items-center gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-900/20">
+                                <input type="radio" th:field="*{visibility}" value="Anonymous" class="accent-blue-600">
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-gray-900 dark:text-white">Anonymous</span>
+                                    <span class="text-[9px] text-gray-400 uppercase font-medium">Hidden profile</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Evidence / Attachment <span class="lowercase font-normal italic">(Optional)</span></label>
+                        <div class="relative group">
+                            <input type="file" id="attachment" name="attachment" accept="image/*,.pdf,.doc,.docx" class="hidden" onchange="const fileName = this.files[0]?.name; if(fileName) document.getElementById('file-label').textContent = fileName; document.getElementById('upload-icon').classList.add('text-blue-500')">
+                            <label for="attachment" class="flex flex-col items-center justify-center w-full min-h-[140px] bg-gray-50 dark:bg-gray-900/50 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-2xl cursor-pointer group-hover:border-blue-400 transition-all group-hover:bg-gray-100 dark:group-hover:bg-gray-800/80">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg id="upload-icon" class="w-10 h-10 mb-4 text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400 font-medium" id="file-label">Click to upload or drag and drop</p>
+                                    <p class="text-[10px] text-gray-400 mt-2 uppercase tracking-widest font-black">PNG, JPG or PDF up to 10MB</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="submitBtn" type="submit" 
+                            class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition active:scale-[0.98] shadow-lg shadow-blue-500/25">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        <span id="submitText">Submit Complaint</span>
+                    </button>
+                </form>
+            </div>
+
+            <script th:inline="javascript">
+                document.querySelector("form").addEventListener("submit", function() {
+                    const btn = document.getElementById("submitBtn");
+                    const txt = document.getElementById("submitText");
+                    
+                    if (txt) txt.innerText = "Submitting...";
+                    else btn.innerText = "Submitting...";
+                    
+                    btn.disabled = true;
+                    btn.classList.add("opacity-75", "cursor-not-allowed");
+                });
+            </script>
+
+            <!-- Sidebar Info -->
+            <div class="space-y-6">
+                <div class="bg-blue-600 p-8 rounded-2xl text-white shadow-xl shadow-blue-500/20">
+                    <h3 class="text-xs font-black uppercase tracking-[0.2em] mb-6">Submission Policy</h3>
+                    <ul class="space-y-4 text-xs leading-relaxed font-medium">
+                        <li class="flex gap-3">
+                            <span class="flex-shrink-0 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px]">✓</span> 
+                            Provide specific details including time and location.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex-shrink-0 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px]">✓</span>
+                            Attach clear photos or documents as evidence.
+                        </li>
+                        <li class="flex gap-3">
+                            <span class="flex-shrink-0 w-5 h-5 bg-white/20 rounded-full flex items-center justify-center text-[10px]">✓</span>
+                            Categorize correctly for faster processing.
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border dark:border-gray-700 shadow-sm space-y-4">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Process Flow</h3>
+                    <p class="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed italic">
+                        Once submitted, your grievance is assigned to a specialized officer within 2 business hours. You will receive an email notification for every status change.
+                    </p>
+                    <div class="pt-2 flex items-center gap-2 text-blue-600 dark:text-blue-400 font-bold text-[10px] uppercase">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                        Average Response: 1.4h
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <button type="submit">Submit Complaint</button>
-    </form>
-
-    <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      const userId = urlParams.get('user');
-      const hiddenInput = document.getElementById('userId');
-      if (hiddenInput && userId) {
-        hiddenInput.value = userId;
-      }
-
-      function showFileName(input) {
-        const fileNameDiv = document.getElementById('file-name');
-        if (input.files && input.files.length > 0) {
-          fileNameDiv.textContent = '📎 ' + input.files[0].name;
-        } else {
-          fileNameDiv.textContent = '';
-        }
-      }
-    </script>
-
-    <div class="links">
-      <a href="home.html">Home</a>
-      <a href="login.html">Logout</a>
     </div>
-  </div>
-
 </body>
-
 </html>

@@ -1,5 +1,13 @@
 package com.example.resolveit.controller;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -9,23 +17,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.resolveit.model.Complaint;
+import com.example.resolveit.model.ComplaintHistory;
 import com.example.resolveit.model.User;
+import com.example.resolveit.repository.ComplaintHistoryRepository;
 import com.example.resolveit.repository.ComplaintRepository;
 import com.example.resolveit.repository.UserRepository;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 
 @Controller
 @RequestMapping("/form")
 public class FormController {
-
-    @Value("${app.upload.dir:uploads}")
-    private String uploadDir;
 
     @Autowired
     private UserRepository userRepository;
@@ -33,64 +33,77 @@ public class FormController {
     @Autowired
     private ComplaintRepository complaintRepository;
 
-    @PostMapping("/register")
-    public String handleRegister(@RequestParam String name, @RequestParam String email, @RequestParam String password) {
-        User user = new User();
-        user.setName(name);
-        user.setEmail(email);
-        user.setPassword(password);
+    @Autowired
+    private ComplaintHistoryRepository complaintHistoryRepository;
 
-        if (user != null) {
-            userRepository.save(user);
-        }
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
-        return "redirect:/login.html?success=Registration successful! Please login.";
-    }
-
-    @PostMapping("/login")
-    public String handleLogin(@RequestParam String email, @RequestParam String password) {
-        User user = userRepository.findByEmail(email);
-
-        if (user != null && user.getPassword().equals(password)) {
-            return "redirect:/complaint.html?user=" + user.getId();
-        }
-
-        return "redirect:/login.html?error=Invalid credentials";
-    }
-
+    // ── Submit Complaint ──────────────────────────────────────────────────
     @PostMapping("/complaint")
-    public String handleComplaint(@RequestParam String title, @RequestParam String description,
-            @RequestParam String category, @RequestParam String urgency,
-            @RequestParam(required = false, defaultValue = "0") int userId,
-            @RequestParam(required = false, defaultValue = "Public") String visibility,
-            @RequestParam(required = false) MultipartFile attachment) {
+    public String handleComplaint(
+            @jakarta.validation.Valid Complaint complaint,
+            org.springframework.validation.BindingResult result,
+            java.security.Principal principal,
+            @RequestParam(required = false) MultipartFile attachment,
+            org.springframework.ui.Model model) {
 
-        Complaint complaint = new Complaint();
-        complaint.setTitle(title);
-        complaint.setDescription(description);
-        complaint.setCategory(category);
-        complaint.setUrgency(urgency);
-        complaint.setStatus("Open");
-        complaint.setUserId(userId);
-        complaint.setVisibility(visibility);
+        if (result.hasErrors()) {
+            return "complaint";
+        }
 
-        // Handle optional file attachment
+        if (principal == null) {
+            return "redirect:/login";
+        }
+
+        User user = userRepository.findByEmail(principal.getName());
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        complaint.setStatus("New");
+        if (complaint.getVisibility() == null) {
+            complaint.setVisibility("Public");
+        }
+        if (complaint.getPriority() == null) {
+            complaint.setPriority("Low");
+        }
+        complaint.setUser(user);
+        complaint.setUserName(user.getName());
+        complaint.setCreatedAt(LocalDateTime.now());
+
+        // ── Handle file upload ──────────────────────────────────────────
         if (attachment != null && !attachment.isEmpty()) {
             try {
                 Path uploadPath = Paths.get(uploadDir);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
+                Files.createDirectories(uploadPath);
+
+                String originalName = attachment.getOriginalFilename();
+                String extension = "";
+                if (originalName != null && originalName.contains(".")) {
+                    extension = originalName.substring(originalName.lastIndexOf("."));
                 }
-                String fileName = UUID.randomUUID() + "_" + attachment.getOriginalFilename();
-                Path filePath = uploadPath.resolve(fileName);
-                Files.copy(attachment.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-                complaint.setAttachmentPath(filePath.toString());
+                String savedName = UUID.randomUUID().toString() + extension;
+
+                Path filePath = uploadPath.resolve(savedName);
+                Files.copy(attachment.getInputStream(), filePath);
+
+                complaint.setAttachmentPath(uploadDir + File.separator + savedName);
+
             } catch (IOException e) {
-                e.printStackTrace();
+                System.err.println("File upload failed: " + e.getMessage());
             }
         }
 
-        complaintRepository.save(complaint);
+        Complaint saved = complaintRepository.save(complaint);
+
+        // Save initial history entry
+        ComplaintHistory history = new ComplaintHistory();
+        history.setComplaint(saved);
+        history.setStatus("New");
+        history.setNote("Complaint submitted");
+        history.setUpdatedBy(user.getName());
+        complaintHistoryRepository.save(history);
 
         return "redirect:/success.html";
     }

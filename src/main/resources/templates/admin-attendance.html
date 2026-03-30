@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content})}">
+<head>
+    <title>Global Staff Logs - ResolveIT</title>
+</head>
+<body>
+    <div th:fragment="content" class="max-w-6xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-1">
+                <h1 class="text-3xl font-black tracking-tighter text-gray-900 dark:text-white uppercase">Personnel Oversight</h1>
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Global Staff Attendance & Shift Activity</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-white dark:bg-gray-800 px-6 py-3 rounded-2xl border dark:border-gray-700 shadow-sm flex items-center gap-3">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                    <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active nodes monitored</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] border dark:border-gray-700 shadow-2xl shadow-indigo-500/5 overflow-hidden ring-1 ring-gray-100 dark:ring-gray-700">
+            <div class="px-8 py-6 border-b dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20 flex items-center justify-between">
+                <h2 class="font-black text-gray-900 dark:text-white uppercase tracking-widest text-sm">System Logs</h2>
+                <div class="text-[10px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100">Live Stream</div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-[9px] font-black text-gray-400 uppercase tracking-[0.3em] border-b dark:border-gray-700 bg-gray-50/30 dark:bg-gray-900/10">
+                            <th class="px-8 py-5">Personnel</th>
+                            <th class="px-8 py-5">Status</th>
+                            <th class="px-8 py-5">Chronology</th>
+                            <th class="px-8 py-5 text-right">Risk Vector</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y dark:divide-gray-700">
+                        <tr th:each="a : ${attendanceList}" class="group hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-all duration-300">
+                            <td class="px-8 py-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-[12px] text-indigo-600 dark:text-indigo-400 font-black shadow-inner group-hover:scale-110 transition-transform duration-500">👤</div>
+                                    <div class="flex flex-col">
+                                        <span class="font-black text-gray-900 dark:text-white uppercase tracking-tight" th:text="${a.user.name}">Staff Member</span>
+                                        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest" th:text="${a.user.email}">Email</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6">
+                                <span class="px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm transition-all group-hover:px-6"
+                                      th:text="${a.status}"
+                                      th:classappend="${a.status == 'IN'} ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-rose-50 text-rose-600 border-rose-100'">
+                                </span>
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="flex flex-col">
+                                    <span class="text-gray-900 dark:text-white font-black text-xs uppercase" th:text="${#temporals.format(a.timestamp, 'MMM dd, yyyy')}">Date</span>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1" th:text="${#temporals.format(a.timestamp, 'HH:mm:ss')}">Time</span>
+                                </div>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest bg-emerald-50 px-2 py-1 rounded border border-emerald-100">NOMINAL</span>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(attendanceList)}">
+                            <td colspan="4" class="px-8 py-20 text-center">
+                                <div class="text-4xl mb-4">🌫️</div>
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">No personnel activity logged in current epoch</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

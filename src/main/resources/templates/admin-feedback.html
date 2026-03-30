@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::div.content})}">
+<head>
+    <title>Feedback Analytics</title>
+</head>
+<body class="bg-gray-50 p-6">
+    <div class="content p-8 max-w-6xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div class="space-y-1">
+                <h1 class="text-3xl font-black tracking-tighter text-gray-900 dark:text-white uppercase">Service Sentiment</h1>
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Qualitative Performance Analytics</p>
+            </div>
+            <div class="flex items-center gap-3 bg-white dark:bg-gray-800 px-5 py-3 rounded-2xl border dark:border-gray-700 shadow-sm">
+                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span class="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest" th:text="${totalReviews} + ' Live Feedbacks'"></span>
+            </div>
+        </div>
+
+        <!-- High-Impact Stats Bar -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Average Rating -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] border dark:border-gray-700 shadow-2xl shadow-indigo-500/5 flex items-center justify-between group overflow-hidden relative">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="space-y-2 relative">
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.25em]">Global Satisfaction</p>
+                    <div class="flex items-end gap-3 font-black">
+                        <h2 class="text-6xl text-gray-900 dark:text-white leading-none" th:text="${#numbers.formatDecimal(avgRating, 1, 1)}">0.0</h2>
+                        <span class="text-3xl text-amber-500 pb-1">★</span>
+                    </div>
+                </div>
+                <div class="w-16 h-16 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center text-3xl shadow-inner relative">⭐</div>
+            </div>
+
+            <!-- Volume Metric -->
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-[2.5rem] border dark:border-gray-700 shadow-2xl shadow-indigo-500/5 flex items-center justify-between group overflow-hidden relative">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div class="space-y-2 relative">
+                    <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.25em]">Engagement Volume</p>
+                    <div class="flex items-end gap-3 font-black">
+                        <h2 class="text-6xl text-indigo-600 leading-none" th:text="${totalReviews}">0</h2>
+                        <span class="text-xl text-indigo-400/50 pb-1 uppercase tracking-widest">Entries</span>
+                    </div>
+                </div>
+                <div class="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl flex items-center justify-center text-3xl shadow-inner relative">📊</div>
+            </div>
+        </div>
+
+        <!-- Sentiment Table -->
+        <div class="bg-white dark:bg-gray-800 rounded-[2.5rem] border dark:border-gray-700 shadow-2xl shadow-indigo-500/5 overflow-hidden ring-1 ring-gray-100 dark:ring-gray-700">
+            <div class="px-10 py-6 border-b dark:border-gray-700 flex items-center justify-between bg-gray-50/50 dark:bg-gray-900/40">
+                <h2 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Lifecycle Feedback Stream</h2>
+                <div class="flex gap-1 animate-pulse">
+                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                    <div class="w-1.5 h-1.5 bg-emerald-500/60 rounded-full"></div>
+                    <div class="w-1.5 h-1.5 bg-emerald-500/30 rounded-full"></div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] border-b dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <th class="px-10 py-6">Rating Intensity</th>
+                            <th class="px-10 py-6">Context Link</th>
+                            <th class="px-10 py-6">Origin Identity</th>
+                            <th class="px-10 py-6">Qualitative Note</th>
+                            <th class="px-10 py-6 text-right">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                        <tr th:if="${#lists.isEmpty(feedbackList)}">
+                            <td colspan="5" class="px-10 py-24 text-center">
+                                <div class="text-4xl mb-6 opacity-40">🧊</div>
+                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Awaiting User Feedback Initialization</p>
+                            </td>
+                        </tr>
+                        <tr th:each="f : ${feedbackList}" class="group hover:bg-gray-50/80 dark:hover:bg-gray-900/30 transition-all duration-300">
+                            <td class="px-10 py-8 whitespace-nowrap">
+                                <div class="flex items-center gap-0.5">
+                                    <span th:each="i : ${#numbers.sequence(1, 5)}" 
+                                          class="text-base transition-transform group-hover:scale-110"
+                                          th:text="${i <= f.rating ? '★' : '☆'}" 
+                                          th:classappend="${i <= f.rating ? 'text-amber-500' : 'text-gray-200 dark:text-gray-700'}"
+                                          th:style="'transition-delay:' + ${i * 50} + 'ms'"></span>
+                                </div>
+                            </td>
+                            <td class="px-10 py-8 whitespace-nowrap">
+                                <div class="flex flex-col">
+                                    <a th:href="@{'/complaint/' + ${f.complaintId}}" class="text-[10px] font-black text-gray-900 dark:text-white uppercase tracking-tight hover:text-indigo-600 transition-colors" th:text="${f.complaint != null ? f.complaint.title : '#' + f.complaintId}">Title</a>
+                                    <span class="text-[8px] font-black text-indigo-600/50 uppercase tracking-widest mt-1" th:text="'TKT-' + ${f.complaintId}"></span>
+                                </div>
+                            </td>
+                            <td class="px-10 py-8 whitespace-nowrap">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-black shadow-lg shadow-indigo-500/20" th:text="${f.user != null ? #strings.substring(f.user.name, 0, 1) : 'U'}"></div>
+                                    <span class="text-[10px] font-black text-gray-700 dark:text-gray-300 uppercase tracking-widest" th:text="${f.user != null ? f.user.name : 'ANONYMOUS'}">Name</span>
+                                </div>
+                            </td>
+                            <td class="px-10 py-8 min-w-[300px]">
+                                <p class="text-[11px] font-bold text-gray-600 dark:text-gray-400 italic bg-gray-50 dark:bg-gray-900/50 p-4 rounded-2xl" th:text="${f.comment}"></p>
+                            </td>
+                            <td class="px-10 py-8 text-right whitespace-nowrap">
+                                <span class="text-[9px] font-mono font-black text-gray-400 bg-gray-100 dark:bg-gray-900 px-3 py-1.5 rounded-lg border dark:border-gray-700" th:text="${f.createdAt != null ? #temporals.format(f.createdAt,'dd MMM, HH:mm') : '-'}"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Log and output files ###
+*.log
+sql_output.txt
+sql_final.txt
+
+### Uploads directory ###
+uploads/
+node_modules
