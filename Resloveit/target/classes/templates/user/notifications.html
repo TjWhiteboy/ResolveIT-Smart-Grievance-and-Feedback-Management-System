@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications – ResolveIT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <!-- CSRF Tokens (safe for STATELESS/JWT mode - value may be empty) -->
+    <meta name="_csrf"        th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}"/>
+    <style>
+        .notifications-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .notif-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .notif-page-header h1 {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+            margin: 0;
+        }
+
+        .notif-page-header p {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            margin: 0.3rem 0 0;
+        }
+
+        .notif-filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.6rem;
+        }
+
+        .notif-tabs { display: flex; gap: 0.5rem; }
+
+        .notif-tab {
+            padding: 0.6rem 1.25rem;
+            background: none;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 9px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .notif-tab:hover { background: var(--bg-body); color: var(--text-main); }
+        .notif-tab.active { background: var(--primary-light); color: var(--primary); }
+
+        .notif-tab .count-badge {
+            font-size: 0.75rem;
+            background: rgba(0,0,0,0.06);
+            padding: 2px 8px;
+            border-radius: 99px;
+        }
+        .notif-tab.active .count-badge { background: rgba(37, 99, 235, 0.12); }
+
+        .notif-list { display: flex; flex-direction: column; gap: 1rem; }
+
+        .notif-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem 1.4rem;
+            display: flex;
+            gap: 1.25rem;
+            position: relative;
+            transition: all 0.22s ease;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .notif-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .notif-card.unread {
+            border-left: 5px solid var(--primary);
+            background: linear-gradient(to right, rgba(37, 99, 235, 0.03), var(--bg-card));
+        }
+
+        .notif-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .notif-body { flex: 1; min-width: 0; }
+
+        .notif-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.35rem;
+            gap: 0.75rem;
+        }
+
+        .notif-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .notif-text {
+            color: var(--text-muted);
+            font-size: 0.93rem;
+            line-height: 1.52;
+            margin-bottom: 0.85rem;
+        }
+
+        .notif-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notif-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .notif-complaint-ref {
+            font-weight: 600;
+            color: var(--primary);
+            background: var(--primary-light);
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .notif-actions { display: flex; gap: 0.75rem; }
+
+        .action-link {
+            font-size: 0.84rem;
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            padding: 0.4rem 0.85rem;
+            border-radius: 8px;
+            border: none;
+            background: var(--primary-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-link:hover { background: var(--primary); color: #fff; }
+
+        .delete-btn {
+            color: #ef4444;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.4rem 0.5rem;
+            border-radius: 8px;
+            opacity: 0.4;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover { background: #fee2e2; opacity: 1; }
+
+        .empty-center {
+            text-align: center;
+            padding: 5rem 2rem;
+            background: var(--bg-card);
+            border: 2px dashed var(--border-color);
+            border-radius: 20px;
+        }
+
+        .empty-icon { font-size: 4rem; color: var(--border-color); margin-bottom: 1.5rem; }
+
+        @media (max-width: 600px) {
+            .notif-card { flex-direction: column; gap: 0.75rem; }
+            .notif-footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .notif-actions { width: 100%; }
+        }
+    </style>
+</head>
+
+<body th:data-theme="${user != null && user.darkMode ? 'dark' : 'light'}"
+      th:class="${user != null && user.compactSidebar ? 'sidebar-compact' : ''}">
+
+    <div class="app-wrapper">
+        <!-- Top Navbar -->
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+        <div style="display: flex;">
+            <!-- User Sidebar -->
+            <div th:replace="~{fragments/sidebar-user :: sidebar('notifications')}"></div>
+
+            <main class="main-container animate-fade">
+                <div class="notifications-container">
+
+                    <!-- Page Header -->
+                    <div class="notif-page-header">
+                        <div>
+                            <h1><i class="fa-solid fa-bell" style="color: var(--primary); margin-right: 0.5rem;"></i>Notifications</h1>
+                            <p>Stay updated with alerts, complaint changes, assignments, and system messages.</p>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button class="btn btn-secondary" onclick="markAllNotificationsAsRead()">
+                                <i class="fa-solid fa-check-double"></i> Mark All as Read
+                            </button>
+                            <button class="btn btn-outline" onclick="loadNotifications()">
+                                <i class="fa-solid fa-rotate"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="notif-filter-bar">
+                        <div class="notif-tabs">
+                            <button class="notif-tab active" data-filter="all" onclick="setFilter('all')">
+                                All <span class="count-badge" id="count-all">0</span>
+                            </button>
+                            <button class="notif-tab" data-filter="unread" onclick="setFilter('unread')">
+                                Unread <span class="count-badge" id="count-unread">0</span>
+                            </button>
+                            <button class="notif-tab" data-filter="read" onclick="setFilter('read')">
+                                Read <span class="count-badge" id="count-read">0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Notification List -->
+                    <div class="notif-list" id="notifications-list-root">
+                        <div style="text-align: center; padding: 4rem;">
+                            <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 1rem;"></div>
+                            <p style="color: var(--text-muted);">Syncing your notifications...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" style="position: fixed; bottom: 2rem; right: 2rem; background: #10b981; color: #fff; padding: 1rem 1.5rem; border-radius: 12px; font-weight: 600; box-shadow: 0 10px 20px rgba(0,0,0,0.12); display: none; z-index: 9999;">
+        <i class="fa-solid fa-circle-check"></i> <span id="toast-msg">Done!</span>
+    </div>
+
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script>
+        let currentFilter = 'all';
+        let allNotifications = [];
+        let refreshInterval = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNotifications();
+            refreshInterval = setInterval(loadNotifications, 30000);
+        });
+
+        function getCsrf() {
+            return {
+                token:  document.querySelector('meta[name="_csrf"]')?.content || '',
+                header: document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN'
+            };
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.notif-tab').forEach(t =>
+                t.classList.toggle('active', t.dataset.filter === filter));
+            renderNotifications();
+        }
+
+        async function loadNotifications() {
+            const root = document.getElementById('notifications-list-root');
+            try {
+                const res = await fetch('/api/notifications');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                allNotifications = await res.json();
+                allNotifications.forEach(n => { if (n.read === undefined) n.read = n.isRead; });
+
+                updateCounts();
+                renderNotifications();
+                if (window.fetchUnreadCount) window.fetchUnreadCount();
+
+            } catch (err) {
+                console.error('Failed to load notifications:', err);
+                root.innerHTML = `
+                    <div class="empty-center">
+                        <div class="empty-icon" style="color: #fca5a5;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <h3>Connection Error</h3>
+                        <p>We couldn't reach the server. Please check your session or refresh.</p>
+                        <button class="btn btn-primary" onclick="loadNotifications()" style="margin-top: 1rem;">
+                            <i class="fa-solid fa-rotate"></i> Retry
+                        </button>
+                    </div>`;
+            }
+        }
+
+        function renderNotifications() {
+            const root = document.getElementById('notifications-list-root');
+            let filtered = allNotifications;
+            if (currentFilter === 'unread') filtered = allNotifications.filter(n => !n.read);
+            if (currentFilter === 'read')   filtered = allNotifications.filter(n =>  n.read);
+
+            if (filtered.length === 0) {
+                const msgs = {
+                    all:    { icon: 'fa-bell-slash',    h: 'No notifications yet',   p: "You'll see updates about your complaints here once they are processed." },
+                    unread: { icon: 'fa-check-circle',  h: 'All caught up!',         p: 'You have no unread notifications.' },
+                    read:   { icon: 'fa-inbox',         h: 'No read notifications',  p: 'Read notifications will appear here.' }
+                };
+                const m = msgs[currentFilter];
+                root.innerHTML = `
+                    <div class="empty-center">
+                        <div class="empty-icon"><i class="fa-solid ${m.icon}"></i></div>
+                        <h3>${m.h}</h3>
+                        <p>${m.p}</p>
+                    </div>`;
+                return;
+            }
+
+            root.innerHTML = filtered.map(n => `
+                <div class="notif-card ${n.read ? '' : 'unread'}" id="notif-card-${n.id}">
+                    <div class="notif-icon-wrapper" style="color:${typeColor(n.type)}; background:${typeColor(n.type)}20;">
+                        <i class="${typeIcon(n.type)}"></i>
+                    </div>
+                    <div class="notif-body">
+                        <div class="notif-title-row">
+                            <div class="notif-title">
+                                ${!n.read ? '<span class="unread-dot"></span>' : ''}
+                                ${n.title || 'Notification Update'}
+                            </div>
+                            <button class="delete-btn" onclick="deleteNotification(${n.id})" title="Delete">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                        <div class="notif-text">${n.message || ''}</div>
+                        <div class="notif-footer">
+                            <div class="notif-meta">
+                                <span class="notif-time"><i class="fa-regular fa-clock"></i> ${timeAgo(n.createdAt)}</span>
+                                ${n.complaintId ? `<span class="notif-complaint-ref">#${n.complaintId}</span>` : ''}
+                            </div>
+                            <div class="notif-actions">
+                                ${!n.read ? `<button class="action-link" onclick="markRead(${n.id})">Mark as Read</button>` : ''}
+                                ${n.targetUrl ? `<a href="${n.targetUrl}" class="action-link" onclick="markRead(${n.id})">View Details →</a>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function markRead(id) {
+            const { token, header } = getCsrf();
+            try {
+                await fetch(`/api/notifications/${id}/read`, { method: 'POST', headers: { [header]: token } });
+                const n = allNotifications.find(n => n.id === id);
+                if (n) n.read = true;
+                renderNotifications();
+                updateCounts();
+                if (window.fetchUnreadCount) window.fetchUnreadCount();
+            } catch (e) { console.error(e); }
+        }
+
+        async function deleteNotification(id) {
+            if (!confirm('Delete this notification?')) return;
+            const { token, header } = getCsrf();
+            try {
+                const res = await fetch(`/api/notifications/${id}`, { method: 'DELETE', headers: { [header]: token } });
+                if (res.ok) {
+                    allNotifications = allNotifications.filter(n => n.id !== id);
+                    renderNotifications();
+                    updateCounts();
+                    showToast('Notification deleted');
+                    if (window.fetchUnreadCount) window.fetchUnreadCount();
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function markAllNotificationsAsRead() {
+            const { token, header } = getCsrf();
+            try {
+                await fetch('/api/notifications/read-all', { method: 'POST', headers: { [header]: token } });
+                allNotifications.forEach(n => n.read = true);
+                renderNotifications();
+                updateCounts();
+                showToast('All marked as read');
+                if (window.fetchUnreadCount) window.fetchUnreadCount();
+            } catch (e) { console.error(e); }
+        }
+
+        function updateCounts() {
+            document.getElementById('count-all').innerText    = allNotifications.length;
+            document.getElementById('count-unread').innerText = allNotifications.filter(n => !n.read).length;
+            document.getElementById('count-read').innerText   = allNotifications.filter(n => n.read).length;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function typeIcon(type) {
+            const map = {
+                ASSIGNMENT:    'fa-solid fa-user-plus',
+                STATUS_UPDATE: 'fa-solid fa-arrows-rotate',
+                SLA_ALERT:     'fa-solid fa-clock',
+                RESOLVED:      'fa-solid fa-circle-check',
+                INFO:          'fa-solid fa-circle-info',
+                UPDATE:        'fa-solid fa-arrows-rotate',
+                SUCCESS:       'fa-solid fa-circle-check',
+                WARNING:       'fa-solid fa-triangle-exclamation',
+                FEEDBACK:      'fa-solid fa-star',
+                MESSAGE:       'fa-solid fa-envelope',
+                REJECTED:      'fa-solid fa-circle-xmark',
+            };
+            return map[type] || 'fa-solid fa-bell';
+        }
+
+        function typeColor(type) {
+            const map = {
+                ASSIGNMENT:    '#3b82f6',
+                STATUS_UPDATE: '#8b5cf6',
+                SLA_ALERT:     '#f59e0b',
+                RESOLVED:      '#10b981',
+                INFO:          '#3b82f6',
+                UPDATE:        '#8b5cf6',
+                SUCCESS:       '#10b981',
+                WARNING:       '#ef4444',
+                REJECTED:      '#ef4444',
+                FEEDBACK:      '#f59e0b',
+                MESSAGE:       '#0ea5e9',
+            };
+            return map[type] || '#64748b';
+        }
+
+        function timeAgo(dateStr) {
+            if (!dateStr) return 'Unknown';
+            const date = new Date(dateStr);
+            const secs = Math.floor((new Date() - date) / 1000);
+            if (secs < 60)    return 'Just now';
+            if (secs < 3600)  return Math.floor(secs/60) + 'm ago';
+            if (secs < 86400) return Math.floor(secs/3600) + 'h ago';
+            if (secs < 604800)return Math.floor(secs/86400) + 'd ago';
+            return date.toLocaleDateString();
+        }
+    </script>
+</body>
+
+</html>

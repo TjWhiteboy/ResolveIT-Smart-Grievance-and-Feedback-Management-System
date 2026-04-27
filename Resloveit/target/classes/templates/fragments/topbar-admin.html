@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="topbar" class="topbar">
+   <div class="topbar-right">
+      <a th:href="@{/admin/notifications}" class="icon-btn" style="position: relative; text-decoration: none; color: #4b5563;">
+         <i class="fas fa-bell"></i>
+         <span class="badge" th:if="${unreadCount != null && unreadCount > 0}" th:text="${unreadCount}">5</span>
+      </a>
+      <div class="profile-dropdown" style="display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative;" onclick="var dm = this.querySelector('.dropdown-menu'); dm.style.display = dm.style.display === 'block' ? 'none' : 'block';">
+         <img th:src="${user != null && user.profilePicturePath != null ? user.profilePicturePath : '/images/admin-avatar.png'}" onerror="this.src='https://ui-avatars.com/api/?name=Admin&background=random'" class="avatar">
+
+         <div class="dropdown-menu" style="display:none; position:absolute; right:0; top:100%; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); border-radius:8px; width:150px; z-index:100; margin-top: 10px;">
+            <a th:href="@{/admin/profile}" style="display:block; padding:10px 15px; color:#374151; text-decoration:none; border-bottom: 1px solid #f3f4f6;">My Profile</a>
+            <a th:href="@{/logout}" style="display:block; padding:10px 15px; color:#ef4444; text-decoration:none;">Logout</a>
+         </div>
+      </div>
+   </div>
+</header>
+</body>
+</html>

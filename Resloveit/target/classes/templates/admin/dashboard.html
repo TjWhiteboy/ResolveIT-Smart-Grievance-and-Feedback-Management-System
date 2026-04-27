@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head(title='Admin Dashboard')}">
+</head>
+
+<body class="bg-main">
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+    <div class="app-container">
+        <!-- Unified Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></div>
+
+        <main class="main-content">
+            <div style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
+                        System Dashboard</h1>
+                    <p style="color: var(--text-muted); font-size: 1rem;">Welcome back, <span th:text="${userName}"
+                            style="color: var(--primary); font-weight: 700;">Admin</span>. Here is what's happening
+                        today.</p>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a th:href="@{/admin/reports}" class="btn btn-outline"
+                        style="border-radius: 10px; padding: 0.75rem 1.25rem;">
+                        <i class="fa-solid fa-download" style="margin-right: 8px;"></i> Export Data
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="dashboard-grid">
+                <a th:href="@{/admin/complaints}" class="summary-card">
+                    <div class="icon-box" style="background: #eef2ff; color: #4f46e5;"><i
+                            class="fa-solid fa-folder"></i></div>
+                    <h3 th:text="${totalComplaints}">0</h3>
+                    <p>Total Complaints</p>
+                </a>
+                <a th:href="@{/admin/complaints(status='New')}" class="summary-card">
+                    <div class="icon-box" style="background: #fffbeb; color: #d97706;"><i
+                            class="fa-solid fa-clock-rotate-left"></i></div>
+                    <h3 th:text="${newComplaints}">0</h3>
+                    <p>New / Pending</p>
+                </a>
+                <a th:href="@{/admin/complaints(status='Resolved')}" class="summary-card">
+                    <div class="icon-box" style="background: #f0fdf4; color: #16a34a;"><i
+                            class="fa-solid fa-check-double"></i></div>
+                    <h3 th:text="${resolvedComplaints}">0</h3>
+                    <p>Cases Resolved</p>
+                </a>
+                <a th:href="@{/admin/attendance}" class="summary-card">
+                    <div class="icon-box" style="background: #fdf2f8; color: #db2777;"><i
+                            class="fa-solid fa-user-check"></i></div>
+                    <h3 th:text="${presentToday}">0</h3>
+                    <p>Staff Present Today</p>
+                </a>
+            </div>
+
+            <!-- Analytics Row 1 -->
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="font-size: 1.15rem; font-weight: 700;">Complaint Velocity</h2>
+                        <span
+                            style="font-size: 0.75rem; color: var(--text-muted); background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px;">Last
+                            6 Months</span>
+                    </div>
+                    <div style="flex: 1; min-height: 0; position: relative;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem;">Status Mix</h2>
+                    <div style="flex: 1; min-height: 0; position: relative;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity Table -->
+            <div class="recent-activity">
+                <div class="ra-header">
+                    <h2 style="font-size: 1.25rem; font-weight: 800;">Recent Complaints (Quick Action)</h2>
+                    <a th:href="@{/admin/complaints}"
+                        style="color: var(--primary); font-size: 0.875rem; font-weight: 600; text-decoration: none;">View
+                        All Inventory →</a>
+                </div>
+                <table class="ra-table">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>User</th>
+                            <th>Complaint Title</th>
+                            <th>Status</th>
+                            <th>Quick Assign</th>
+                            <th>Update</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="c : ${recentComplaints}">
+                            <td th:text="'#' + ${c.id}" style="font-weight: 700; font-family: monospace;">#1</td>
+                            <td th:text="${c.userName}">User</td>
+                            <td th:text="${c.title}"
+                                style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                Title</td>
+                            <td>
+                                <span class="urgency-pill" th:text="${c.status}"
+                                    th:classappend="${c.status == 'Resolved' ? 'u-low' : (c.status == 'Denied' ? 'u-high' : 'u-medium')}">New</span>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/complaints/assign}" method="post"
+                                    style="display: flex; gap: 5px;">
+                                    <input type="hidden" name="complaintId" th:value="${c.id}">
+                                    <select name="staffId" class="ra-select" style="width: 100px;">
+                                        <option value="">-- Assign --</option>
+                                        <option th:each="s : ${staffList}" th:value="${s.id}" th:text="${s.name}"
+                                            th:selected="${c.assignedStaff == s.id}"></option>
+                                    </select>
+                                    <button type="submit" class="ra-btn" title="Assign"><i
+                                            class="fa-solid fa-user-plus"></i></button>
+                                </form>
+                            </td>
+                            <td>
+                                <form th:action="@{/admin/complaints/update-status}" method="post"
+                                    style="display: flex; gap: 5px;">
+                                    <input type="hidden" name="complaintId" th:value="${c.id}">
+                                    <select name="status" class="ra-select" style="width: 100px;">
+                                        <option value="New" th:selected="${c.status == 'New'}">New</option>
+                                        <option value="In Progress" th:selected="${c.status == 'In Progress'}">Prog
+                                        </option>
+                                        <option value="Resolved" th:selected="${c.status == 'Resolved'}">Done</option>
+                                        <option value="Denied" th:selected="${c.status == 'Denied'}">Deny</option>
+                                    </select>
+                                    <button type="submit" class="ra-btn" style="background: var(--secondary);"
+                                        title="Update"><i class="fa-solid fa-check"></i></button>
+                                </form>
+                            </td>
+                            <td>
+                                <a th:href="@{'/admin/details/' + ${c.id}}" class="ra-btn"
+                                    style="background: var(--primary); text-decoration: none; padding: 5px 8px;"
+                                    title="View Details">
+                                    <i class="fa-solid fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Analytics Row 2 -->
+            <div class="chart-grid" style="grid-template-columns: 1fr 1fr; margin-top: 2rem;">
+                <div class="chart-container">
+                    <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.5rem;">Category Distribution</h2>
+                    <div style="flex: 1; min-height: 0; position: relative;">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="font-size: 1.15rem; font-weight: 700;">Staff Efficiency</h2>
+                        <a th:href="@{/admin/staff}"
+                            style="font-size: 0.75rem; color: var(--primary); text-decoration: none; font-weight: 600;">Full
+                            Leaderboard</a>
+                    </div>
+                    <div style="flex: 1; min-height: 0; position: relative;">
+                        <canvas id="staffChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const trendData = /*[[${monthlyTrends}]]*/ {};
+        const statusData = /*[[${statusDistribution}]]*/ {};
+        const categoryData = /*[[${categoryDistribution}]]*/ {};
+        const staffData = /*[[${staffWorkload}]]*/[];
+
+        // 1. Trend Chart (Line)
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: Object.keys(trendData).reverse(),
+                datasets: [{
+                    label: 'Complaints',
+                    data: Object.values(trendData).reverse(),
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.05)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#4f46e5'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+            }
+        });
+
+        // 2. Status Chart (Doughnut)
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: ['#4f46e5', '#f59e0b', '#10b981', '#ef4444', '#64748b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }
+            }
+        });
+
+        // 3. Category Chart (Bar)
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(categoryData),
+                datasets: [{
+                    label: 'Tickets',
+                    data: Object.values(categoryData),
+                    backgroundColor: 'rgba(79, 70, 229, 0.15)',
+                    borderColor: '#4f46e5',
+                    borderWidth: 1.5,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
+            }
+        });
+
+        // 4. Staff Chart (Horizontal Bar)
+        new Chart(document.getElementById('staffChart'), {
+            type: 'bar',
+            data: {
+                labels: staffData.map(s => s.name),
+                datasets: [{
+                    label: 'Resolution Rate (%)',
+                    data: staffData.map(s => s.rate),
+                    backgroundColor: '#10b981',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, max: 100 } }
+            }
+        });
+        /*]]>*/
+    </script>
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+
+</html>

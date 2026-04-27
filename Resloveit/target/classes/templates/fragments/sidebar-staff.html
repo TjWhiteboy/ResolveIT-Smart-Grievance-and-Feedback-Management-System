@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside th:fragment="sidebar(activePage)" class="sidebar">
+    <div class="sidebar-menu">
+        <p class="sidebar-label">Main Menu</p>
+        
+        <a th:href="@{/staff/dashboard}" class="sidebar-link" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+            <i class="fa-solid fa-gauge-high"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a th:href="@{/staff/tasks}" class="sidebar-link" th:classappend="${activePage == 'tasks'} ? 'active' : ''">
+            <i class="fa-solid fa-list-check"></i>
+            <span>My Tasks</span>
+        </a>
+
+        <a th:href="@{/staff/completed}" class="sidebar-link" th:classappend="${activePage == 'completed'} ? 'active' : ''">
+            <i class="fa-solid fa-clipboard-check"></i>
+            <span>Completed Complaints</span>
+        </a>
+
+        <a th:href="@{/staff/complaints}" class="sidebar-link" th:classappend="${activePage == 'complaints'} ? 'active' : ''">
+            <i class="fa-solid fa-folder-open"></i>
+            <span>All Complaints</span>
+        </a>
+
+        <p class="sidebar-label">Insights</p>
+        
+        <a th:href="@{/staff/notifications}" class="sidebar-link" th:classappend="${activePage == 'notifications'} ? 'active' : ''">
+            <i class="fa-solid fa-bell"></i>
+            <span>Notifications</span>
+        </a>
+
+        <a th:href="@{/staff/timeline}" class="sidebar-link" th:classappend="${activePage == 'timeline'} ? 'active' : ''">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Timeline</span>
+        </a>
+
+        <a th:href="@{/staff/sla}" class="sidebar-link" th:classappend="${activePage == 'sla'} ? 'active' : ''">
+            <i class="fa-solid fa-stopwatch"></i>
+            <span>Escalation Monitor</span>
+        </a>
+
+        <a th:href="@{/staff/feedback}" class="sidebar-link" th:classappend="${activePage == 'feedback'} ? 'active' : ''">
+            <i class="fa-solid fa-star"></i>
+            <span>Feedback</span>
+        </a>
+
+        <p class="sidebar-label">Personal</p>
+
+        <a th:href="@{/staff/activity-log}" class="sidebar-link" th:classappend="${activePage == 'activity'} ? 'active' : ''">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Activity Log</span>
+        </a>
+    </div>
+    
+    <div class="sidebar-footer">
+        <div th:if="${activePage != 'profile'}" class="user-sidebar-card">
+            <div class="user-avatar-small">
+                <img th:if="${user != null and user.profilePicturePath != null}" th:src="${user.profilePicturePath}" alt="PFP">
+                <span th:unless="${user != null and user.profilePicturePath != null}" th:text="${userName != null ? #strings.substring(userName,0,1) : 'S'}">S</span>
+            </div>
+            <div class="user-details">
+                <p class="user-name" th:text="${userName}">Staff Name</p>
+                <p class="user-role">Staff</p>
+            </div>
+            <a th:href="@{/profile}" class="user-settings-btn" title="My Profile">
+                <i class="fa-solid fa-cog"></i>
+            </a>
+        </div>
+
+        <div class="status-card">
+            <div class="status-dot"></div>
+            <span>System Operational</span>
+        </div>
+    </div>
+</aside>
+
+</body>
+</html>

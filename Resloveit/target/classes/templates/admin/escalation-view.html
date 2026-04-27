@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escalation Complaint Details – ResolveIT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/profile.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" th:href="@{/css/admin-escalation-view.css}">
+</head>
+
+<body class="bg-main">
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+    <div class="app-container">
+        <div th:replace="~{fragments/sidebar :: sidebar('sla')}"></div>
+
+        <main class="main-content">
+                
+                <div class="page-header">
+                   <div>
+                      <div class="breadcrumb">
+                         Dashboard / Escalation Monitor / <span th:text="'#' + ${c.id}">#6</span>
+                      </div>
+                      <h1 th:text="${c.title}">Test Complaint Fix</h1>
+                      <p class="subtitle" th:text="'Complaint ID #' + ${c.id} + ' • Submitted on ' + ${#temporals.format(c.createdAt, 'dd MMM yyyy, hh:mm a')}">
+                         Complaint ID #6 • Submitted on 10 Apr 2026, 07:26 PM
+                      </p>
+                   </div>
+                   <div class="header-actions" style="display:flex; align-items:center; gap:16px;">
+                      <span class="status-badge" th:text="${c.status}" th:style="${c.status == 'Resolved' ? 'background:#dcfce7; color:#166534;' : (c.status == 'Denied' ? 'background:#fee2e2; color:#991b1b;' : '')}">UNDER REVIEW</span>
+                      <a href="/admin/sla" class="btn-back">
+                         Back to Escalations
+                      </a>
+                   </div>
+                </div>
+
+                <div class="content-grid">
+                    
+                    <!-- LEFT COLUMN -->
+                    <div class="left-col">
+                        <!-- Complaint Information -->
+                        <div class="card">
+                            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: #1f2937;">Complaint Information</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <label style="font-size: 0.75rem; color: #6b7280; font-weight: 700; text-transform: uppercase;">Category</label>
+                                    <p style="font-weight: 600; color: #1f2937; margin-top: 4px;" th:text="${c.category}">Billing</p>
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.75rem; color: #6b7280; font-weight: 700; text-transform: uppercase;">Priority</label>
+                                    <p style="font-weight: 600; color: #1f2937; margin-top: 4px;" th:text="${c.urgency}">High</p>
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.75rem; color: #6b7280; font-weight: 700; text-transform: uppercase;">Visibility</label>
+                                    <p style="font-weight: 600; color: #1f2937; margin-top: 4px;" th:text="${c.anonymous ? 'Anonymous' : 'Public'}">Public</p>
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.75rem; color: #6b7280; font-weight: 700; text-transform: uppercase;">Last Updated</label>
+                                    <p style="font-weight: 600; color: #1f2937; margin-top: 4px;" th:text="${#temporals.format(c.updatedAt != null ? c.updatedAt : c.createdAt, 'dd MMM yyyy, HH:mm')}">Date</p>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; color: #6b7280; font-weight: 700; text-transform: uppercase;">Description</label>
+                                <p style="line-height: 1.6; color: #374151; margin-top: 8px; background: #f9fafb; padding: 16px; border-radius: 12px;" th:text="${c.description}">Description text</p>
+                            </div>
+                        </div>
+
+                        <!-- Submitter Information -->
+                        <div class="card">
+                            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: #1f2937;">Submitter Information</h3>
+                            <div style="display: flex; align-items: center; gap: 16px; background: #f8fafc; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <i class="fas fa-user-circle" style="font-size: 3rem; color: #94a3b8;"></i>
+                                <div style="flex: 1;">
+                                    <h4 style="margin: 0; font-size: 1.1rem; color: #1f2937;" th:text="${c.userName}">John Doe</h4>
+                                    <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.875rem;" th:text="${c.anonymous ? 'User requested to remain anonymous' : 'Registered User'}">Registered User</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Files & Attachments -->
+                        <div class="card">
+                            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: #1f2937;">Files & Attachments</h3>
+                            <div th:if="${c.attachmentPath}">
+                                <a th:href="${c.attachmentPath}" target="_blank" class="btn-back" style="display: inline-flex; align-items: center; gap: 8px;">
+                                    <i class="fas fa-paperclip"></i> View Attached File
+                                </a>
+                            </div>
+                            <div th:unless="${c.attachmentPath}" style="color: #6b7280; font-style: italic;">
+                                No files uploaded
+                            </div>
+                        </div>
+
+                        <!-- Complaint Timeline -->
+                        <div class="card">
+                            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: #1f2937;">Complaint Timeline</h3>
+                            <div style="position: relative; padding-left: 2rem; border-left: 2px solid #e2e8f0; margin-left: 0.5rem;">
+                                <div th:each="h : ${history}" style="position: relative; margin-bottom: 2rem;">
+                                    <div style="position: absolute; left: -2.45rem; top: 0; width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; border: 3px solid #fff;"></div>
+                                    <div style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid #f1f5f9;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                            <span style="font-weight: 700; font-size: 0.875rem; color: #1e293b;" th:text="${h.status}">Status</span>
+                                            <span style="font-size: 0.75rem; color: #64748b;" th:text="${#temporals.format(h.timestamp, 'dd MMM, hh:mm a')}">Time</span>
+                                        </div>
+                                        <p style="font-size: 0.875rem; color: #475569; margin:0;" th:text="${h.note}">Note content</p>
+                                    </div>
+                                </div>
+                                <div th:if="${#lists.isEmpty(history)}" style="color:#64748b; font-size:0.9rem;">
+                                    No history recorded yet.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="right-col">
+                        <!-- Quick Summary -->
+                        <div class="card" style="padding: 20px;">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; color: #1f2937;">Quick Summary</h3>
+                            <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.875rem; color: #475569;">
+                                <li style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 12px;">
+                                    <strong>Age:</strong> <span th:text="${T(java.time.temporal.ChronoUnit).DAYS.between(c.createdAt.toLocalDate(), T(java.time.LocalDate).now()) + ' days'}">0 days</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 12px;">
+                                    <strong>Priority:</strong> <span th:text="${c.urgency}">High</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 12px;">
+                                    <strong>Category:</strong> <span th:text="${c.category}">Billing</span>
+                                </li>
+                                <li style="display: flex; justify-content: space-between;">
+                                    <strong>Assigned Staff:</strong> 
+                                    <span th:each="s : ${staffList}" th:if="${s.id == c.assignedStaff}" th:text="${s.name}">Unassigned</span>
+                                    <span th:if="${c.assignedStaff == null || c.assignedStaff == 0}">Unassigned</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- SLA Compliance -->
+                        <div class="card" style="padding: 20px;">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; color: #1f2937;">SLA Compliance</h3>
+                            <div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 8px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-exclamation-circle"></i> Escalated
+                            </div>
+                        </div>
+
+                        <!-- Admin Actions -->
+                        <div class="card" style="border: 2px solid #e5e7eb;">
+                            <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.25rem; color: #1f2937; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-sliders-h" style="color: #3b82f6;"></i> Admin Actions
+                            </h3>
+                            
+                            <form th:action="@{/admin/sla/view/update/{id}(id=${c.id})}" method="post">
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Update Status</label>
+                                    <select name="status" style="width: 100%; height: 44px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-family: inherit;">
+                                        <option value="New" th:selected="${c.status == 'New'}">New</option>
+                                        <option value="Under Review" th:selected="${c.status == 'Under Review'}">Under Review</option>
+                                        <option value="In Progress" th:selected="${c.status == 'In Progress'}">In Progress</option>
+                                        <option value="Resolved" th:selected="${c.status == 'Resolved'}">Resolved</option>
+                                        <option value="Denied" th:selected="${c.status == 'Denied'}">Rejected</option>
+                                    </select>
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Assign Staff</label>
+                                    <select name="staffId" style="width: 100%; height: 44px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font-family: inherit;">
+                                        <option value="0">-- Select Staff --</option>
+                                        <option th:each="s : ${staffList}" th:value="${s.id}" th:text="${s.name}" th:selected="${c.assignedStaff == s.id}"></option>
+                                    </select>
+                                </div>
+                                <div style="margin-bottom: 1.5rem;">
+                                    <label style="font-size: 0.8rem; font-weight: 700; color: #475569; display: block; margin-bottom: 6px;">Internal Notes</label>
+                                    <textarea name="adminNotes" rows="4" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 0.875rem; font-family: inherit; resize: vertical;" placeholder="Add internal timeline note..."></textarea>
+                                </div>
+                                <button type="submit" class="btn-primary" style="width: 100%;">
+                                    Save All Changes
+                                </button>
+                            </form>
+
+                            <div style="border-top: 1px solid #e2e8f0; margin-top: 1.5rem; padding-top: 1.5rem;">
+                                <p style="font-size: 0.8rem; font-weight: 700; color: #64748b; margin-bottom: 12px;">Quick Actions</p>
+                                <div style="display: flex; gap: 10px;">
+                                    <form th:action="@{/admin/sla/view/resolve/{id}(id=${c.id})}" method="post" style="flex: 1;">
+                                        <button type="submit" class="btn-success" style="width: 100%;">
+                                            <i class="fas fa-check"></i> Resolve
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/admin/sla/view/reject/{id}(id=${c.id})}" method="post" style="flex: 1;">
+                                        <button type="submit" class="btn-danger" style="width: 100%;">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+    <!-- Success Toast -->
+    <div th:if="${param.success}" style="position:fixed;bottom:2rem;right:2rem;background:#16a34a;color:#fff;padding:1rem 1.5rem;border-radius:12px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:9999;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-circle-check"></i> Update successful!
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

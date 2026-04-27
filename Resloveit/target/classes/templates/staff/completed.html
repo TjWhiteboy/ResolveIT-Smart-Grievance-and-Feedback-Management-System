@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completed Complaints – ResolveIT Staff</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/staff.css}">
+    <style>
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .summary-cards { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .summary-cards { grid-template-columns: 1fr; }
+        }
+
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sc-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .sc-purple { background: #f3e8ff; color: #9333ea; }
+        .sc-blue { background: #e0f2fe; color: #0284c7; }
+        .sc-indigo { background: #e0e7ff; color: #4f46e5; }
+        .sc-green { background: #dcfce7; color: #16a34a; }
+
+        .sc-details h3 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin: 0;
+            line-height: 1;
+            color: var(--text-main);
+        }
+        .sc-details p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.35rem;
+        }
+
+        .filters-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .filter-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 150px; }
+        .filter-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+        .filter-input { padding: 0.6rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 0.9rem; width: 100%; }
+
+        .comp-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .badge-resolved { background: #dcfce7; color: #166534; }
+        .badge-closed { background: #dbeafe; color: #1e40af; }
+        .badge-completed { background: #f3e8ff; color: #7e22ce; }
+
+    </style>
+</head>
+
+<body data-theme="light">
+    <div class="app-wrapper">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <div style="display:flex;">
+            <div th:replace="~{fragments/sidebar-staff :: sidebar('completed')}"></div>
+            <main class="main-container animate-fade">
+                <div style="margin-bottom:2rem;">
+                    <h1 style="font-size:1.875rem;font-weight:800;">Completed Complaints</h1>
+                    <p style="color:var(--text-muted);font-size:.9rem;margin-top:.25rem;">View all complaints successfully resolved by you.</p>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${success}" class="alert alert-success" style="margin-bottom:1.5rem; padding:0.75rem 1.25rem; border-radius:10px; background:#dcfce7; color:#166534; font-weight:600;">
+                    <i class="fa-solid fa-circle-check"></i> <span th:text="${success}"></span>
+                </div>
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <div class="sc-icon sc-purple"><i class="fa-solid fa-clipboard-check"></i></div>
+                        <div class="sc-details">
+                            <h3 th:text="${totalCompleted}">0</h3>
+                            <p>Total Completed</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="sc-icon sc-green"><i class="fa-solid fa-calendar-day"></i></div>
+                        <div class="sc-details">
+                            <h3 th:text="${completedToday}">0</h3>
+                            <p>Completed Today</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="sc-icon sc-blue"><i class="fa-solid fa-calendar-week"></i></div>
+                        <div class="sc-details">
+                            <h3 th:text="${completedThisWeek}">0</h3>
+                            <p>This Week</p>
+                        </div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="sc-icon sc-indigo"><i class="fa-solid fa-stopwatch"></i></div>
+                        <div class="sc-details">
+                            <h3 th:text="${avgResolutionDays} + ' d'">0.0 d</h3>
+                            <p>Avg Time</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-section">
+                    <div class="filter-group" style="flex:2;">
+                        <label class="filter-label">Search</label>
+                        <input type="text" id="searchFilter" class="filter-input" placeholder="Search by title or ID..." onkeyup="filterTable()">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Category</label>
+                        <select id="catFilter" class="filter-input" onchange="filterTable()">
+                            <option value="">All Categories</option>
+                            <!-- Dynamically loaded categories if needed, for now just static text matching -->
+                            <option value="Hardware">Hardware</option>
+                            <option value="Software">Software</option>
+                            <option value="Network">Network</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select id="statusFilter" class="filter-input" onchange="filterTable()">
+                            <option value="">All Completed</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Closed">Closed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-responsive" style="background:var(--bg-card); border-radius:12px; border:1px solid var(--border-color); overflow-x:auto;">
+                    <table style="width:100%; border-collapse:collapse; text-align:left;" id="complaintsTable">
+                        <thead>
+                            <tr style="border-bottom:1px solid var(--border-color); color:var(--text-muted); font-size:0.75rem; text-transform:uppercase;">
+                                <th style="padding:1rem 1.5rem;">Complaint ID & Title</th>
+                                <th style="padding:1rem;">User Name</th>
+                                <th style="padding:1rem;">Category</th>
+                                <th style="padding:1rem;">Priority</th>
+                                <th style="padding:1rem;">Completed Date</th>
+                                <th style="padding:1rem;">Status</th>
+                                <th style="padding:1rem 1.5rem; text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${completedTasks}" class="data-row" style="border-bottom:1px solid var(--border-color); transition: background 0.2s;">
+                                <td style="padding:1rem 1.5rem;">
+                                    <div style="font-weight:700; color:var(--text-main); margin-bottom:0.15rem;" class="comp-title" th:text="${c.title}">Title</div>
+                                    <div style="font-size:0.8rem; color:var(--text-muted);" class="comp-id" th:text="'#' + ${c.id}">#123</div>
+                                </td>
+                                <td style="padding:1rem;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <div style="width:24px; height:24px; background:var(--bg-hover); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:var(--text-muted);" th:text="${#strings.substring(c.userName,0,1)}"></div>
+                                        <span style="font-size:0.9rem; font-weight:500;" th:text="${c.userName}">User</span>
+                                    </div>
+                                </td>
+                                <td style="padding:1rem; font-size:0.9rem;" class="comp-category" th:text="${c.category}">Cat</td>
+                                <td style="padding:1rem; font-size:0.9rem;">
+                                    <span style="color:var(--text-muted);"><i class="fa-solid fa-flag"></i> <span th:text="${c.priority}">Norm</span></span>
+                                </td>
+                                <td style="padding:1rem; font-size:0.9rem;" th:text="${c.resolvedAt != null ? #temporals.format(c.resolvedAt, 'dd MMM yyyy') : 'N/A'}">Date</td>
+                                <td style="padding:1rem;" class="comp-status">
+                                    <span class="comp-badge" th:classappend="${c.status == 'Resolved'} ? 'badge-resolved' : (${c.status == 'Closed'} ? 'badge-closed' : 'badge-completed')" th:text="${c.status}">Resolved</span>
+                                </td>
+                                <td style="padding:1rem 1.5rem; text-align:right;">
+                                    <div style="display:flex; gap:0.5rem; justify-content:flex-end;">
+                                        <a th:href="@{/staff/complaints/{id}(id=${c.id})}" class="btn btn-primary btn-sm" title="View Details"><i class="fa-solid fa-eye"></i></a>
+                                        
+                                        <form th:action="@{/staff/updateStatus}" method="post" style="display:inline-block;" title="Reopen Complaint">
+                                            <input type="hidden" name="id" th:value="${c.id}">
+                                            <input type="hidden" name="status" value="In Progress">
+                                            <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-rotate-left"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <tr th:if="${#lists.isEmpty(completedTasks)}">
+                                <td colspan="7" style="padding:4rem; text-align:center; color:var(--text-muted);">
+                                    <i class="fa-solid fa-clipboard-check" style="font-size:3rem; display:block; margin-bottom:1rem; opacity:0.3;"></i>
+                                    <h3 style="font-weight:700;">No Completed Tasks</h3>
+                                    <p>You haven't resolved any complaints yet.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <script>
+        function filterTable() {
+            let search = document.getElementById('searchFilter').value.toLowerCase();
+            let cat = document.getElementById('catFilter').value.toLowerCase();
+            let status = document.getElementById('statusFilter').value.toLowerCase();
+            
+            let rows = document.querySelectorAll('.data-row');
+            
+            rows.forEach(row => {
+                let text = row.querySelector('.comp-title').innerText.toLowerCase() + " " + row.querySelector('.comp-id').innerText.toLowerCase();
+                let rCat = row.querySelector('.comp-category').innerText.toLowerCase();
+                let rStatus = row.querySelector('.comp-status').innerText.toLowerCase();
+                
+                let matchesSearch = search === '' || text.includes(search);
+                let matchesCat = cat === '' || rCat.includes(cat);
+                let matchesStatus = status === '' || rStatus.includes(status);
+                
+                if (matchesSearch && matchesCat && matchesStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script th:src="@{/js/staff.js}"></script>
+</body>
+</html>

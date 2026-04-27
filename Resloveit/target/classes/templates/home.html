@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head(title='Welcome')}"></head>
+
+<body style="background: var(--bg-main);">
+
+    <div th:replace="~{fragments/topbar :: topbar(isHome=true)}"></div>
+
+    <main>
+        <!-- Hero Section -->
+        <section
+            style="padding: 180px 2rem 100px; text-align: center; background: radial-gradient(circle at top, #f0f7ff 0%, #ffffff 100%);">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <span
+                    style="display: inline-block; padding: 6px 15px; background: #eef2ff; color: var(--primary); border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1.5rem; letter-spacing: 1px;">Smart
+                    Complaint Management</span>
+                <h1
+                    style="font-size: 3.5rem; font-weight: 800; color: var(--text-main); line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px;">
+                    Resolve Issues <span style="color: var(--primary);">Faster & Smarter</span></h1>
+                <p style="font-size: 1.125rem; color: var(--secondary); margin-bottom: 2.5rem; line-height: 1.6;">The
+                    all-in-one platform to submit, track, and manage complaints with real-time updates and transparent
+                    resolution.</p>
+                <div style="display: flex; justify-content: center; gap: 1rem;">
+                    <a href="/register" class="btn btn-primary"
+                        style="padding: 1rem 2rem; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);">Start
+                        for Free Today</a>
+                    <a href="/login" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">Track
+                        Progress</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section
+            style="padding: 4rem 2rem; background: white; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+            <div
+                style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; gap: 2rem;">
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">24h</div>
+                    <p
+                        style="color: var(--text-muted); font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">
+                        Average Resolution</p>
+                </div>
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">98%</div>
+                    <p
+                        style="color: var(--text-muted); font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">
+                        User Satisfaction</p>
+                </div>
+                <div>
+                    <div style="font-size: 2.5rem; font-weight: 800; color: var(--text-main);">10k+</div>
+                    <p
+                        style="color: var(--text-muted); font-size: 0.875rem; font-weight: 600; text-transform: uppercase;">
+                        Tickets Resolved</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Grid -->
+        <section style="padding: 100px 2rem; max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 4rem;">
+                <h2 style="font-size: 2rem; font-weight: 800; color: var(--text-main); margin-bottom: 1rem;">Everything
+                    You Need</h2>
+                <p style="color: var(--secondary);">Streamlined features built for both users and support staff.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div class="card" style="padding: 2.5rem; text-align: center; transition: transform 0.3s;"
+                    onmouseover="this.style.transform='translateY(-10px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div
+                        style="width: 60px; height: 60px; background: #eef2ff; color: var(--primary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.5rem;">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem;">Easy
+                        Submission</h3>
+                    <p style="color: var(--secondary); font-size: 0.95rem; line-height: 1.6;">Quickly file complaints
+                        with attachments and urgency levels to ensure priority handling.</p>
+                </div>
+                <div class="card" style="padding: 2.5rem; text-align: center; transition: transform 0.3s;"
+                    onmouseover="this.style.transform='translateY(-10px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div
+                        style="width: 60px; height: 60px; background: #f0fdf4; color: var(--success); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.5rem;">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem;">Live
+                        Tracking</h3>
+                    <p style="color: var(--secondary); font-size: 0.95rem; line-height: 1.6;">Stay informed with
+                        real-time status updates and a complete history of resolution steps.</p>
+                </div>
+                <div class="card" style="padding: 2.5rem; text-align: center; transition: transform 0.3s;"
+                    onmouseover="this.style.transform='translateY(-10px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div
+                        style="width: 60px; height: 60px; background: #fff7ed; color: var(--warning); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.5rem;">
+                        <i class="fa-solid fa-bell"></i>
+                    </div>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem;">Auto
+                        Notifications</h3>
+                    <p style="color: var(--secondary); font-size: 0.95rem; line-height: 1.6;">Receive instant email and
+                        in-app alerts whenever your ticket status changes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section style="padding: 100px 2rem;">
+            <div
+                style="max-width: 1000px; margin: 0 auto; background: var(--primary); border-radius: 24px; padding: 4rem; text-align: center; color: white;">
+                <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1.5rem;">Ready to get resolved?</h2>
+                <p
+                    style="font-size: 1.1rem; opacity: 0.9; margin-bottom: 2.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Join thousands of users who rely on ResolveIt for transparent and fast issue resolution.</p>
+                <div style="display: flex; justify-content: center; gap: 1rem;">
+                    <a href="/register" class="btn"
+                        style="background: white; color: var(--primary); padding: 1rem 2.5rem; font-size: 1.1rem; font-weight: 700;">Join
+                        Now</a>
+                    <a href="/login" class="btn"
+                        style="background: rgba(255,255,255,0.1); color: white; padding: 1rem 2.5rem; border: 1px solid rgba(255,255,255,0.3); font-size: 1.1rem;">Sign
+                        In</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+    <script th:src="@{/js/common.js}"></script>
+</body>
+
+</html>

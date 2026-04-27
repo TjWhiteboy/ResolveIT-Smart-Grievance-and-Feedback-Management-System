@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Tasks – ResolveIT Staff</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/staff.css}">
+    <style>
+        .operative-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: transform .2s;
+        }
+
+        .operative-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .op-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-body);
+        }
+
+        .op-body {
+            padding: 1.5rem;
+        }
+
+        .op-footer {
+            padding: 1rem 1.5rem;
+            background: var(--bg-body);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .task-title-link {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .task-title-link:hover {
+            color: var(--primary);
+        }
+
+        .op-meta {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .op-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .note-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            resize: vertical;
+            background: var(--bg-card);
+            color: var(--text-main);
+        }
+
+        .status-pill {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+    <div class="app-wrapper">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+        <div style="display:flex;">
+            <div th:replace="~{fragments/sidebar-staff :: sidebar('tasks')}"></div>
+            <main class="main-container animate-fade">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;">
+                    <div>
+                        <h1 style="font-size:1.875rem;font-weight:800;">My Tasks</h1>
+                        <p style="color:var(--text-muted);font-size:.9rem;margin-top:.25rem;">Active complaints
+                            requiring your attention.</p>
+                    </div>
+                    <div class="task-count-pill" th:text="${totalTasks} + ' active tasks'">0 active tasks</div>
+                </div>
+
+                <div id="taskList">
+                    <div th:each="c : ${tasks}" class="operative-card">
+                        <div class="op-header">
+                            <div>
+                                <span class="status-pill"
+                                    th:classappend="${c.status == 'New'} ? 'badge-new' : (${c.status == 'Under Review'} ? 'badge-review' : 'badge-progress')"
+                                    th:text="${c.status}">New</span>
+                                <span th:if="${c.delayed}" class="sla-tag" style="margin-left:0.5rem;"><i
+                                        class="fa-solid fa-triangle-exclamation"></i> OVERDUE</span>
+                            </div>
+                            <span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);"
+                                th:text="'#' + ${c.id}">#101</span>
+                        </div>
+                        <div class="op-body">
+                            <a th:href="@{/staff/tasks/{id}(id=${c.id})}" class="task-title-link"
+                                th:text="${c.title}">Complaint Title</a>
+                            <div class="op-meta">
+                                <span><i class="fa-solid fa-user"></i> <span th:text="${c.userName}">User</span></span>
+                                <span><i class="fa-solid fa-tag"></i> <span th:text="${c.category}">Tech</span></span>
+                                <span><i class="fa-solid fa-calendar"></i> <span
+                                        th:text="${#temporals.format(c.createdAt, 'dd MMM yyyy')}">Date</span></span>
+                                <span><i class="fa-solid fa-flag"></i> <span
+                                        th:text="${c.priority}">Normal</span></span>
+                            </div>
+                        </div>
+                        <div class="op-footer">
+                            <form th:action="@{/staff/updateStatus}" method="post"
+                                style="display:flex; gap:0.5rem; flex:1; align-items:center;">
+                                <input type="hidden" name="id" th:value="${c.id}">
+                                <input type="hidden" name="staffId" th:value="${user.id}">
+                                <select name="status" class="form-control" style="max-width:200px; padding:0.4rem;">
+                                    <option value="Under Review" th:selected="${c.status=='Under Review'}">Under Review
+                                    </option>
+                                    <option value="In Progress" th:selected="${c.status=='In Progress'}">In Progress
+                                    </option>
+                                    <option value="Resolved">Resolved</option>
+                                    <option value="Denied">Denied</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-sm">Update Status</button>
+                            </form>
+                            <div class="op-actions">
+                                <a th:href="@{/staff/tasks/{id}(id=${c.id})}" class="btn btn-secondary btn-sm"
+                                    title="View Details"><i class="fa-solid fa-eye"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(tasks)}"
+                        style="text-align:center;padding:4rem;color:var(--text-muted);">
+                        <i class="fa-solid fa-clipboard-check"
+                            style="font-size:3rem;display:block;margin-bottom:1rem;opacity:.3;"></i>
+                        <h3 style="font-weight:700;">Zero Tasks</h3>
+                        <p>Great job! You have no pending tasks assigned to you.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script th:src="@{/js/staff.js}"></script>
+</body>
+
+</html>

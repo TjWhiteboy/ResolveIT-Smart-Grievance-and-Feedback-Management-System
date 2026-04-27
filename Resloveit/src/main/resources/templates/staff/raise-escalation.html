@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raise Escalation – ResolveIT Staff</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+
+    <style>
+        .raise-container { max-width: 900px; margin: 0 auto; }
+        .info-strip {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .info-item label { display: block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+        .info-item p { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
+        
+        .form-section-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .form-section-title i { color: var(--primary); }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="app-wrapper">
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+        <div style="display:flex;">
+            <div th:replace="~{fragments/sidebar-staff :: sidebar('sla')}"></div>
+            
+            <main class="main-container animate-fade">
+                <div class="raise-container">
+                    <div style="margin-bottom:2.5rem;">
+                        <div style="display:flex; align-items:center; gap:0.75rem; color:var(--text-muted); font-size:0.85rem; margin-bottom:0.5rem;">
+                            <a th:href="@{/staff/sla}" style="color:inherit; text-decoration:none;">Escalations</a>
+                            <i class="fa-solid fa-chevron-right" style="font-size:0.7rem;"></i>
+                            <span>Raise Request</span>
+                        </div>
+                        <h1 style="font-size:2rem; font-weight:800;">Submit Escalation</h1>
+                        <p style="color:var(--text-muted); margin-top:0.25rem;">Provide details for the Admin to review this blocked or delayed complaint.</p>
+                    </div>
+
+                    <div class="info-strip shadow-sm">
+                        <div class="info-item">
+                            <label>Complaint Reference</label>
+                            <p th:text="'#' + ${complaint.id}"></p>
+                        </div>
+                        <div class="info-item">
+                            <label>Subject</label>
+                            <p th:text="${complaint.title}"></p>
+                        </div>
+                        <div class="info-item">
+                            <label>Original Priority</label>
+                            <span class="badge" th:style="'background:' + (${complaint.priority == 'High' ? '#fee2e2; color:#ef4444;' : '#f3f4f6; color:#1f2937;'})" th:text="${complaint.priority}"></span>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-lg" style="border-radius:16px;">
+                        <div class="card-body" style="padding:2.5rem;">
+                            <form th:action="@{/staff/escalation/submit}" method="POST">
+                                <input type="hidden" name="complaintId" th:value="${complaint.id}">
+                                
+                                <div class="form-section-title">
+                                    <i class="fa-solid fa-circle-info"></i> Escalation Details
+                                </div>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                    <div class="form-group">
+                                        <label style="font-weight:700; margin-bottom:0.75rem; display:block;">Primary Reason <span style="color:red;">*</span></label>
+                                        <select name="reason" class="input-field" required style="padding:0.75rem; border-radius:10px;">
+                                            <option value="" disabled selected>Select a reason...</option>
+                                            <option value="SLA Breach">SLA Breach (Duration Exceeded)</option>
+                                            <option value="Delay in Resolution">General Delay in Resolution</option>
+                                            <option value="Need Admin Approval">Needs Higher Admin Approval</option>
+                                            <option value="Customer Angry">Client/Stakeholder Dissatisfied</option>
+                                            <option value="Technical Blocker">Major Technical Blocker</option>
+                                            <option value="Staff Overloaded">Departmental Workload Peak</option>
+                                            <option value="High Priority Issue">High Priority / Strategic Issue</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label style="font-weight:700; margin-bottom:0.75rem; display:block;">Escalation Severity <span style="color:red;">*</span></label>
+                                        <select name="severity" class="input-field" required style="padding:0.75rem; border-radius:10px;">
+                                            <option value="LOW">Low — Standard follow-up</option>
+                                            <option value="MEDIUM" selected>Medium — Attention needed</option>
+                                            <option value="HIGH">High — Significant impact</option>
+                                            <option value="CRITICAL">Critical — Immediate resolution</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-top:2rem;">
+                                    <label style="font-weight:700; margin-bottom:0.75rem; display:block;">Detailed Explanation <span style="color:red;">*</span></label>
+                                    <textarea name="comment" rows="6" class="input-field" style="border-radius:12px; padding:1.25rem;" required
+                                              placeholder="Provide context on why this needs admin attention. What help do you need? What is the current status?"></textarea>
+                                </div>
+
+                                <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border-color); display:flex; gap:1rem; justify-content:flex-end;">
+                                    <a th:href="@{/staff/escalations}" class="btn btn-secondary" style="padding:0.75rem 1.5rem;">Cancel</a>
+                                    <button type="submit" class="btn btn-primary" style="padding:0.75rem 2.5rem; background:var(--primary); font-weight:700;">
+                                        <i class="fa-solid fa-paper-plane"></i> Submit Escalation
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

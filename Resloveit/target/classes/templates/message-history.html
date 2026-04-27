@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head(title='Message History')}">
+</head>
+
+<body class="bg-main">
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+    <div class="app-container">
+        <!-- User Sidebar -->
+        <div th:replace="~{fragments/sidebar-user :: sidebar('contact')}"></div>
+
+        <main class="main-content">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">Message History</h1>
+                    <p style="color: var(--text-muted); font-size: 1rem;">View your previous messages to admin and their replies.</p>
+                </div>
+                <a th:href="@{/contact-admin}" class="btn btn-primary" style="border-radius: 10px; padding: 0.75rem 1.5rem; text-decoration: none;">
+                    <i class="fa-solid fa-plus" style="margin-right: 8px;"></i> New Message
+                </a>
+            </div>
+
+            <div class="message-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div th:each="msg : ${messages}" class="card animate-fade" style="padding: 2rem; border-radius: 16px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s, box-shadow 0.2s;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <h3 th:text="${msg.subject}" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.25rem;">Subject</h3>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-regular fa-calendar"></i> <span th:text="${#temporals.format(msg.createdAt, 'MMMM dd, yyyy')}">Date</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span th:if="${msg.priority == 'HIGH'}" class="urgency-pill u-high" style="font-size: 0.65rem; padding: 0.25rem 0.75rem;">
+                                <i class="fa-solid fa-fire"></i> HIGH PRIORITY
+                            </span>
+                            <span class="status-badge" 
+                                  th:classappend="${msg.status == 'UNREAD' ? 'new' : (msg.status == 'REPLIED' ? 'resolved' : 'review')}"
+                                  th:text="${msg.status}" style="font-size: 0.7rem; padding: 0.35rem 1rem;">STATUS</span>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--bg-body); padding: 1.25rem; border-radius: 12px; color: var(--text-main); font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem; border: 1px solid var(--border-color);" th:text="${msg.message}">
+                        Message content...
+                    </div>
+
+                    <div th:if="${msg.adminReply != null}" class="animate-fade" style="background: #f0fdf4; padding: 1.5rem; border-radius: 12px; border-left: 4px solid #10b981; border: 1px solid #dcfce7; border-left-width: 4px;">
+                        <div style="font-size: 0.85rem; font-weight: 800; color: #065f46; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-reply"></i> OFFICIAL ADMIN RESPONSE:
+                        </div>
+                        <div th:text="${msg.adminReply}" style="font-size: 1rem; color: #064e3b; line-height: 1.6; white-space: pre-wrap;">Admin reply text...</div>
+                        <div style="font-size: 0.75rem; color: #059669; margin-top: 0.75rem; text-align: right; font-weight: 600;" 
+                             th:text="${'Replied on ' + #temporals.format(msg.repliedAt, 'MMM dd, HH:mm')}">Date</div>
+                    </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(messages)}" class="card" style="text-align: center; padding: 6rem 2rem; border-radius: 20px; border: 2px dashed var(--border-color); background: transparent;">
+                    <div style="font-size: 4rem; color: var(--border-color); margin-bottom: 1.5rem;"><i class="fa-solid fa-comment-slash"></i></div>
+                    <h3 style="color: var(--text-main); font-weight: 800; margin-bottom: 0.5rem;">No Conversations Yet</h3>
+                    <p style="color: var(--text-muted); font-size: 1rem; margin-bottom: 2rem;">You haven't sent any support messages to the admin yet.</p>
+                    <a th:href="@{/contact-admin}" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 10px; text-decoration: none;">
+                        Send First Message
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+
+</html>
+
