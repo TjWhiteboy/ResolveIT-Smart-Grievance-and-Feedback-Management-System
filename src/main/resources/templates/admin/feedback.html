@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head(title='Feedback Management')}"></head>
+
+<body class="bg-main">
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+    
+    <div class="app-container">
+        <div th:replace="~{fragments/sidebar :: sidebar('feedback')}"></div>
+        
+        <main class="main-content">
+            
+            <!-- Page Header -->
+            <div style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1 style="font-size: 2rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">Feedback Management</h1>
+                    <p style="color: var(--text-muted); font-size: 1rem;">Review user satisfaction, complaint handling quality, and staff performance ratings.</p>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a th:href="@{/admin/reports/export/feedback}" class="btn btn-outline"><i class="fa-solid fa-file-csv"></i> Export CSV</a>
+                    <button onclick="window.print()" class="btn btn-outline"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+                    <a th:href="@{/admin/feedback}" class="btn btn-primary"><i class="fa-solid fa-rotate-right"></i> Refresh</a>
+                </div>
+            </div>
+
+            <!-- ROW 1: Analytics Cards -->
+            <div class="dashboard-grid">
+                <div class="summary-card">
+                    <div class="icon-box" style="background: #eef2ff; color: var(--primary);"><i class="fa-solid fa-comments"></i></div>
+                    <h3 th:text="${totalFeedback}">0</h3>
+                    <p>Total Feedback Received</p>
+                </div>
+                <div class="summary-card">
+                    <div class="icon-box" style="background: #fef3c7; color: #f59e0b;"><i class="fa-solid fa-star"></i></div>
+                    <h3 th:text="${avgRating} + ' / 5.0'">0.0 / 5.0</h3>
+                    <p>Average Rating</p>
+                </div>
+                <div class="summary-card">
+                    <div class="icon-box" style="background: #dcfce7; color: #10b981;"><i class="fa-solid fa-thumbs-up"></i></div>
+                    <h3 th:text="${positiveReviews}">0</h3>
+                    <p>Positive Reviews</p>
+                </div>
+                <div class="summary-card">
+                    <div class="icon-box" style="background: #fee2e2; color: #ef4444;"><i class="fa-solid fa-thumbs-down"></i></div>
+                    <h3 th:text="${negativeReviews}">0</h3>
+                    <p>Negative Reviews</p>
+                </div>
+            </div>
+
+            <!-- ROW 2: Filter Bar -->
+            <form th:action="@{/admin/feedback}" method="get" class="filter-bar">
+                <div class="filter-group">
+                    <label class="filter-label">Search</label>
+                    <input type="text" name="keyword" th:value="${keyword}" class="search-input" placeholder="User, Comment, Staff...">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Rating</label>
+                    <select name="rating" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Ratings</option>
+                        <option value="5" th:selected="${selRating == 5}">5 Stars</option>
+                        <option value="4" th:selected="${selRating == 4}">4 Stars</option>
+                        <option value="3" th:selected="${selRating == 3}">3 Stars</option>
+                        <option value="2" th:selected="${selRating == 2}">2 Stars</option>
+                        <option value="1" th:selected="${selRating == 1}">1 Star</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Time Period</label>
+                    <select name="dateFilter" class="filter-select" onchange="this.form.submit()">
+                        <option value="All" th:selected="${selDate == 'All'}">All Time</option>
+                        <option value="Today" th:selected="${selDate == 'Today'}">Today</option>
+                        <option value="Week" th:selected="${selDate == 'Week'}">This Week</option>
+                        <option value="Month" th:selected="${selDate == 'Month'}">This Month</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select name="status" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="Pending Review" th:selected="${selStatus == 'Pending Review'}">Pending Review</option>
+                        <option value="Approved" th:selected="${selStatus == 'Approved'}">Approved</option>
+                        <option value="Hidden" th:selected="${selStatus == 'Hidden'}">Hidden</option>
+                        <option value="Flagged" th:selected="${selStatus == 'Flagged'}">Flagged</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Staff</label>
+                    <select name="staffId" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Staff</option>
+                        <option th:each="s : ${staffList}" th:value="${s.id}" th:text="${s.name}" th:selected="${selStaffId == s.id}"></option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label class="filter-label">Sort By</label>
+                    <select name="sortParam" class="filter-select" onchange="this.form.submit()">
+                        <option value="Latest" th:selected="${selSort == 'Latest'}">Latest</option>
+                        <option value="Oldest" th:selected="${selSort == 'Oldest'}">Oldest</option>
+                        <option value="Highest Rating" th:selected="${selSort == 'Highest Rating'}">Highest Rating</option>
+                        <option value="Lowest Rating" th:selected="${selSort == 'Lowest Rating'}">Lowest Rating</option>
+                    </select>
+                </div>
+
+                <div style="margin-left: auto; align-self: flex-end; display: flex; gap: 0.5rem;">
+                    <a th:href="@{/admin/feedback}" class="btn btn-outline">Reset</a>
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                </div>
+            </form>
+
+            <!-- ROW 3: Main Feedback Table -->
+            <div class="recent-activity">
+                <div class="ra-header">
+                    <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">Recent Feedback</h2>
+                </div>
+                
+                <table class="complaint-table">
+                    <thead>
+                        <tr>
+                            <th>Ref#</th>
+                            <th>Complaint</th>
+                            <th>User</th>
+                            <th>Staff Assignee</th>
+                            <th>Rating</th>
+                            <th>Comment Preview</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="f : ${feedbacks}">
+                            <td style="font-weight: 800; color: var(--secondary);" th:text="'#' + ${f.complaintId}"></td>
+                            <td>
+                                <div style="font-weight: 600; color: var(--primary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                                     th:text="${complaintMap[f.complaintId] != null ? complaintMap[f.complaintId].title : 'Unknown'}"></div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600; color: var(--text-main);" 
+                                     th:text="${f.userName != null && !f.userName.isEmpty() ? f.userName : (userMap[f.userId] != null ? userMap[f.userId] : 'Unknown User')}"></div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);" th:text="'ID: ' + ${f.userId}"></div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 600;" th:text="${f.staffId != null ? staffMap[f.staffId] : 'Unassigned'}"></div>
+                            </td>
+                            <td>
+                                <div style="color: #f59e0b; display: flex; align-items: center; gap: 4px;">
+                                    <span style="font-weight: 700; margin-right: 4px; color: var(--text-main);" th:text="${f.rating}">5</span>
+                                    <i th:each="i : ${#numbers.sequence(1, 5)}"
+                                        th:class="${i <= f.rating ? 'fa-solid' : 'fa-regular'} + ' fa-star'" style="font-size: 0.8rem;"></i>
+                                </div>
+                            </td>
+                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted);" th:text="${f.comment != null && !f.comment.isEmpty() ? f.comment : 'No comment provided'}"></td>
+                            <td>
+                                <span class="badge" th:classappend="
+                                    ${f.status == 'Pending Review'} ? 'badge-pending' :
+                                    (${f.status == 'Approved'} ? 'badge-resolved' :
+                                    (${f.status == 'Hidden'} ? 'badge-new' :
+                                    (${f.status == 'Flagged'} ? 'badge-denied' : 'badge-new')))"
+                                    th:text="${f.status}">Pending Review</span>
+                            </td>
+                            <td style="font-size: 0.85rem;" th:text="${#temporals.format(f.createdAt, 'dd MMM yyyy')}"></td>
+                            <td>
+                                <div style="display: flex; gap: 6px;">
+                                    <button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" th:onclick="'openModal(' + ${f.id} + ')'"><i class="fa-solid fa-eye"></i> View</button>
+                                </div>
+                                
+                                <!-- Hidden Modal Content per Row -->
+                                <div th:id="'modal-content-' + ${f.id}" style="display: none;">
+                                    <div class="feedback-detail">
+                                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">
+                                            <div>
+                                                <h3 style="margin-bottom: 0.25rem;">Feedback for Complaint #<span th:text="${f.complaintId}"></span></h3>
+                                                <p style="font-weight: 600; color: var(--primary); margin-bottom: 0.25rem;" th:text="${complaintMap[f.complaintId] != null ? complaintMap[f.complaintId].title : 'Unknown Complaint'}"></p>
+                                                <p style="color: var(--text-muted); font-size: 0.85rem;" th:text="${#temporals.format(f.createdAt, 'dd MMM yyyy, hh:mm a')}"></p>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <span class="badge" th:classappend="
+                                                    ${f.status == 'Pending Review'} ? 'badge-pending' :
+                                                    (${f.status == 'Approved'} ? 'badge-resolved' :
+                                                    (${f.status == 'Hidden'} ? 'badge-new' :
+                                                    (${f.status == 'Flagged'} ? 'badge-denied' : 'badge-new')))"
+                                                    th:text="${f.status}">Pending Review</span>
+                                                <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+                                                    Resolved: <span style="font-weight: 600; color: var(--text-main);" th:text="${complaintMap[f.complaintId] != null ? complaintMap[f.complaintId].status : 'N/A'}"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                                            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                                                <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">User</p>
+                                                <p style="font-weight: 600;" th:text="${f.userName != null && !f.userName.isEmpty() ? f.userName : (userMap[f.userId] != null ? userMap[f.userId] : 'Unknown User')}"></p>
+                                            </div>
+                                            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                                                <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Handled By Staff</p>
+                                                <p style="font-weight: 600;" th:text="${f.staffId != null ? staffMap[f.staffId] : 'Unassigned'}"></p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="margin-bottom: 1.5rem;">
+                                            <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem;">Rating</p>
+                                            <div style="color: #f59e0b; font-size: 1.25rem;">
+                                                <i th:each="i : ${#numbers.sequence(1, 5)}" th:class="${i <= f.rating ? 'fa-solid' : 'fa-regular'} + ' fa-star'"></i>
+                                                <span style="color: var(--text-main); font-weight: 700; margin-left: 0.5rem;" th:text="${f.rating} + ' / 5'"></span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="margin-bottom: 1.5rem;">
+                                            <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem;">Full Comment</p>
+                                            <div style="background: #fff; border: 1px solid var(--border-color); padding: 1rem; border-radius: 8px; min-height: 80px;" th:text="${f.comment != null && !f.comment.isEmpty() ? f.comment : 'No written comment provided by user.'}"></div>
+                                        </div>
+
+                                        <div style="margin-bottom: 2rem;">
+                                            <p style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.5rem;">Admin Notes on Complaint</p>
+                                            <div style="background: #f8fafc; border: 1px dashed var(--border-color); padding: 1rem; border-radius: 8px; font-size: 0.9rem; color: var(--text-muted);" 
+                                                 th:text="${complaintMap[f.complaintId] != null && complaintMap[f.complaintId].adminNotes != null && !complaintMap[f.complaintId].adminNotes.isEmpty() ? complaintMap[f.complaintId].adminNotes : 'No admin notes recorded for this complaint.'}"></div>
+                                        </div>
+                                        
+                                        <!-- Actions -->
+                                        <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                            <form th:action="@{/admin/feedback/update-status}" method="post">
+                                                <input type="hidden" name="feedbackId" th:value="${f.id}">
+                                                <input type="hidden" name="status" value="Approved">
+                                                <button type="submit" class="btn btn-primary" style="background: #10b981;"><i class="fa-solid fa-check"></i> Approve</button>
+                                            </form>
+                                            
+                                            <form th:action="@{/admin/feedback/update-status}" method="post">
+                                                <input type="hidden" name="feedbackId" th:value="${f.id}">
+                                                <input type="hidden" name="status" value="Hidden">
+                                                <button type="submit" class="btn btn-outline"><i class="fa-solid fa-eye-slash"></i> Hide</button>
+                                            </form>
+
+                                            <form th:action="@{/admin/feedback/update-status}" method="post">
+                                                <input type="hidden" name="feedbackId" th:value="${f.id}">
+                                                <input type="hidden" name="status" value="Flagged">
+                                                <button type="submit" class="btn btn-outline" style="color: #f59e0b; border-color: #fcd34d;"><i class="fa-solid fa-flag"></i> Flag</button>
+                                            </form>
+                                            
+                                            <form th:action="@{/admin/feedback/delete}" method="post" style="margin-left: auto;" onsubmit="return confirm('Are you sure you want to delete this feedback permanently?');">
+                                                <input type="hidden" name="feedbackId" th:value="${f.id}">
+                                                <button type="submit" class="btn btn-primary" style="background: #ef4444;"><i class="fa-solid fa-trash"></i> Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(feedbacks)}">
+                            <td colspan="9" style="text-align: center; padding: 4rem 2rem;">
+                                <i class="fa-solid fa-comments text-muted" style="font-size: 3rem; opacity: 0.2; margin-bottom: 1rem; display: block;"></i>
+                                <h3 style="font-size: 1.25rem; color: var(--text-main); margin-bottom: 0.5rem;">No feedback found</h3>
+                                <p style="color: var(--text-muted);">There is no feedback matching your current filters.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- ROW 4: Insights & Charts -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+                <!-- Monthly Trend Chart -->
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="card-header">
+                        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-chart-line"></i> Monthly Feedback Trend</h2>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <canvas id="trendsChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Staff Comparison Chart -->
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="card-header">
+                        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-chart-simple"></i> Staff Rating Comparison</h2>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <canvas id="staffChart" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Rating Distribution -->
+                <div class="card" style="margin-bottom: 0;">
+                    <div class="card-header">
+                        <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);"><i class="fa-solid fa-chart-pie"></i> Ratings Distribution</h2>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <canvas id="ratingsChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROW 5: Staff Performance -->
+            <div class="recent-activity" style="margin-top: 2rem;">
+                <div class="ra-header">
+                    <h2 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">Staff Performance Ratings</h2>
+                </div>
+                <table class="complaint-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Name</th>
+                            <th>Total Reviews</th>
+                            <th>Avg Rating</th>
+                            <th>Positive %</th>
+                            <th>Negative %</th>
+                            <th>Resolved Complaints</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="perf : ${staffPerformance}">
+                            <td style="font-weight: 600;" th:text="${staffMap[perf[0]]}">Staff Name</td>
+                            <td th:text="${perf[1]}">0</td>
+                            <td>
+                                <span style="font-weight: 700; color: #f59e0b;"><i class="fa-solid fa-star"></i> <span th:text="${#numbers.formatDecimal(perf[2], 1, 1)}">0.0</span></span>
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                        <div style="height: 100%; background: #10b981;" th:styleappend="'width: ' + (${perf[1]} > 0 ? (${perf[3]} * 100 / ${perf[1]}) : 0) + '%;'"></div>
+                                    </div>
+                                    <span style="font-size: 0.8rem; font-weight: 600;" th:text="${perf[1]} > 0 ? ${#numbers.formatDecimal((perf[3] * 100.0 / perf[1]), 0, 0)} + '%' : '0%'">0%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                        <div style="height: 100%; background: #ef4444;" th:styleappend="'width: ' + (${perf[1]} > 0 ? (${perf[4]} * 100 / ${perf[1]}) : 0) + '%;'"></div>
+                                    </div>
+                                    <span style="font-size: 0.8rem; font-weight: 600;" th:text="${perf[1]} > 0 ? ${#numbers.formatDecimal((perf[4] * 100.0 / perf[1]), 0, 0)} + '%' : '0%'">0%</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight: 700; color: var(--primary);" th:text="${resolvedMap[perf[0]] != null ? resolvedMap[perf[0]] : 0}">0</div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(staffPerformance)}">
+                            <td colspan="6" class="text-center" style="padding: 2rem; color: var(--text-muted);">No staff performance data available.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Generic Modal Overlay -->
+    <div id="feedbackModal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100000; align-items: center; justify-content: center;">
+        <div class="modal-content" style="background: #fff; width: 100%; max-width: 600px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); padding: 2rem; position: relative; max-height: 90vh; overflow-y: auto;">
+            <button onclick="closeModal()" style="position: absolute; top: 1.5rem; right: 1.5rem; background: transparent; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;"><i class="fa-solid fa-times"></i></button>
+            <div id="modal-body-container"></div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div th:if="${success}" style="position:fixed;bottom:2rem;right:2rem;background:#16a34a;color:#fff;padding:1rem 1.5rem;border-radius:12px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:99999;display:flex;align-items:center;gap:8px;">
+        <i class="fa-solid fa-circle-check"></i> <span th:text="${success}"></span>
+    </div>
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script th:inline="javascript">
+        // View Modal Logic
+        function openModal(id) {
+            const content = document.getElementById('modal-content-' + id).innerHTML;
+            document.getElementById('modal-body-container').innerHTML = content;
+            document.getElementById('feedbackModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('feedbackModal').style.display = 'none';
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('feedbackModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Charts Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            /*<![CDATA[*/
+            const distributionData = /*[[${ratingDistribution}]]*/ [];
+            const trendsData = /*[[${feedbackTrends}]]*/ [];
+            const performanceData = /*[[${staffPerformance}]]*/ [];
+            const staffMap = /*[[${staffMap}]]*/ {};
+            /*]]>*/
+            
+            // 1. Ratings Distribution Chart
+            const counts = {5:0, 4:0, 3:0, 2:0, 1:0};
+            if (distributionData) {
+                distributionData.forEach(item => { counts[item[0]] = item[1]; });
+            }
+
+            const ctxR = document.getElementById('ratingsChart');
+            if (ctxR) {
+                new Chart(ctxR, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'],
+                        datasets: [{
+                            data: [counts[5], counts[4], counts[3], counts[2], counts[1]],
+                            backgroundColor: ['#10b981', '#34d399', '#fcd34d', '#fb923c', '#ef4444']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+
+            // 2. Monthly Trends Chart
+            const ctxT = document.getElementById('trendsChart');
+            if (ctxT && trendsData && trendsData.length > 0) {
+                // Trends data is descending by month, reverse for chart
+                const labels = trendsData.map(d => d[0]).reverse();
+                const values = trendsData.map(d => d[1]).reverse();
+                
+                new Chart(ctxT, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Feedback Count',
+                            data: values,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } 
+                    }
+                });
+            }
+
+            // 3. Staff Comparison Chart
+            const ctxS = document.getElementById('staffChart');
+            if (ctxS && performanceData && performanceData.length > 0) {
+                const labels = performanceData.map(p => staffMap[p[0]]);
+                const values = performanceData.map(p => p[2]); // Average Rating
+                
+                new Chart(ctxS, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Avg Rating',
+                            data: values,
+                            backgroundColor: '#4f46e5',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        scales: { y: { min: 0, max: 5 } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

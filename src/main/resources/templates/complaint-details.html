@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Details – ResolveIT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <style>
+        .details-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding-bottom: 5rem;
+        }
+
+        .timeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 3rem 0;
+            padding: 0 1rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50px;
+            right: 50px;
+            height: 4px;
+            background: var(--border-color);
+            z-index: 1;
+        }
+
+        .timeline-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border: 4px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            transition: 0.3s;
+        }
+
+        .timeline-step.active .step-icon {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .timeline-step.denied .step-icon {
+            border-color: var(--status-denied);
+            color: white;
+            background: var(--status-denied);
+        }
+
+        .timeline-step.completed .step-icon {
+            background: var(--status-resolved);
+            border-color: var(--status-resolved);
+            color: #fff;
+        }
+
+        .step-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .timeline-step.active .step-label {
+            color: var(--primary);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-group p {
+            font-size: 1rem;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .history-list {
+            margin-top: 1.5rem;
+        }
+
+        .history-item {
+            padding: 1.25rem;
+            border-left: 3px solid var(--primary);
+            background: var(--bg-body);
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .history-item::after {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 1.5rem;
+            width: 12px;
+            height: 12px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid var(--bg-card);
+        }
+
+        .feedback-section {
+            background: var(--primary-light);
+            border: 2px dashed var(--primary);
+            padding: 2rem;
+            border-radius: var(--radius);
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            font-size: 1.75rem;
+            color: #fbbf24;
+        }
+
+        .star-rating i {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body data-theme="light">
+
+    <div class="app-wrapper">
+        <!-- Navbar -->
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+        <main class="main-container details-container animate-fade">
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+                <div>
+                    <a th:href="${backUrl != null ? backUrl : '/my-complaints?userId=' + userId}"
+                        class="btn btn-secondary" style="margin-bottom: 1rem;">
+                        <i class="fa-solid fa-arrow-left"></i> Back to List
+                    </a>
+                    <h1 style="font-size: 1.75rem; font-weight: 800;">
+                        Complaint <span th:text="'#' + ${complaint.id}">#01</span>
+                    </h1>
+                </div>
+                <!-- SLA Status Alert Card -->
+                <div th:if="${slaStatus != 'COMPLETED'}" style="margin-bottom: 2rem;">
+                    <div th:if="${slaStatus == 'ON_TRACK'}" class="alert alert-success" style="padding: 1rem; border-radius: 12px; background: #dcfce7; color: #166534; display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <p style="font-weight: 700; font-size: 0.9rem;">ON TRACK</p>
+                            <p style="font-size: 0.8rem; opacity: 0.9;">Within resolution window ( <span th:text="${elapsedHours}">0</span>h elapsed)</p>
+                        </div>
+                    </div>
+                    <div th:if="${slaStatus == 'DUE_SOON'}" class="alert alert-warning" style="padding: 1rem; border-radius: 12px; background: #fef3c7; color: #92400e; display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fa-solid fa-clock"></i>
+                        <div>
+                            <p style="font-weight: 700; font-size: 0.9rem;">DUE SOON</p>
+                            <p style="font-size: 0.8rem; opacity: 0.9;">Approaching SLA limit ( <span th:text="${elapsedHours}">0</span>h elapsed)</p>
+                        </div>
+                    </div>
+                    <div th:if="${slaStatus == 'OVERDUE'}" class="alert alert-danger" style="padding: 1rem; border-radius: 12px; background: #fee2e2; color: #991b1b; display: flex; align-items: center; gap: 0.75rem;">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <div>
+                            <p style="font-weight: 700; font-size: 0.9rem;">OVERDUE</p>
+                            <p style="font-size: 0.8rem; opacity: 0.9;">SLA target (48h) exceeded ( <span th:text="${elapsedHours}">0</span>h elapsed)</p>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${complaint.status == 'New'}" style="display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-secondary"
+                        style="color: var(--status-denied); border-color: rgba(239, 68, 68, 0.2);"><i
+                            class="fa-solid fa-trash"></i> Cancel</button>
+                </div>
+            </div>
+
+            <!-- Progress Timeline -->
+            <div class="card" style="padding: 1rem 0;">
+                <div class="timeline">
+                    <div class="timeline-step" th:classappend="${complaint.status == 'New'} ? 'active' : 'completed'">
+                        <div class="step-icon">
+                            <i
+                                th:class="${complaint.status == 'New'} ? 'fa-solid fa-circle-dot' : 'fa-solid fa-check'"></i>
+                        </div>
+                        <div class="step-label">Submitted</div>
+                    </div>
+                    <div class="timeline-step"
+                        th:classappend="${complaint.status == 'Under Review'} ? 'active' : (${complaint.status != 'New'} ? 'completed' : '')">
+                        <div class="step-icon">
+                            <i
+                                th:class="${complaint.status == 'Under Review'} ? 'fa-solid fa-magnifying-glass' : (${complaint.status != 'New' and complaint.status != 'Under Review'} ? 'fa-solid fa-check' : 'fa-solid fa-clock')"></i>
+                        </div>
+                        <div class="step-label">Review</div>
+                    </div>
+                    <div class="timeline-step"
+                        th:classappend="${complaint.status == 'In Progress'} ? 'active' : (${complaint.status == 'Resolved' or complaint.status == 'Denied'} ? 'completed' : '')">
+                        <div class="step-icon">
+                            <i
+                                th:class="${complaint.status == 'In Progress'} ? 'fa-solid fa-spinner fa-spin' : (${complaint.status == 'Resolved' or complaint.status == 'Denied'} ? 'fa-solid fa-check' : 'fa-solid fa-gears')"></i>
+                        </div>
+                        <div class="step-label">In Progress</div>
+                    </div>
+                    <div class="timeline-step"
+                        th:classappend="${complaint.status == 'Resolved'} ? 'active' : (${complaint.status == 'Denied'} ? 'active denied' : '')">
+                        <div class="step-icon">
+                            <i
+                                th:class="${complaint.status == 'Resolved'} ? 'fa-solid fa-circle-check' : (${complaint.status == 'Denied'} ? 'fa-solid fa-circle-xmark' : 'fa-solid fa-flag-checkered')"></i>
+                        </div>
+                        <div class="step-label" th:text="${complaint.status == 'Denied' ? 'Denied' : 'Resolved'}">
+                            Resolved</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="info-grid">
+
+                <!-- Left Side: Basic Info -->
+                <div class="stack">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Complaint Details</h2>
+                        </div>
+                        <div class="card-body" style="padding: 1.5rem;">
+                            <div class="info-group" style="margin-bottom: 1.5rem;">
+                                <label>Title</label>
+                                <p th:text="${complaint.title}"
+                                    style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">Complaint Title
+                                </p>
+                            </div>
+                            <div class="info-group" style="margin-bottom: 2rem;">
+                                <label>Description</label>
+                                <p th:text="${complaint.description}"
+                                    style="color: var(--text-muted); line-height: 1.6;">Full description goes here...
+                                </p>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+                                <div class="info-group">
+                                    <label>Category</label>
+                                    <p th:text="${complaint.category}">General</p>
+                                </div>
+                                <div class="info-group">
+                                    <label>Priority</label>
+                                    <p>
+                                        <span class="status-badge"
+                                            th:classappend="${complaint.priority == 'Critical' or complaint.priority == 'High'} ? 'denied' : (${complaint.priority == 'Low'} ? 'resolved' : 'review')"
+                                            th:text="${complaint.priority}">Normal</span>
+                                    </p>
+                                </div>
+                                <div class="info-group">
+                                    <label>Date Filed</label>
+                                    <p
+                                        th:text="${complaint.createdAt != null ? #temporals.format(complaint.createdAt, 'dd MMM yyyy, HH:mm') : '—'}">
+                                        12 Oct 2023</p>
+                                </div>
+                                <div class="info-group">
+                                    <label>Assigned Staff</label>
+                                    <p
+                                        th:text="${complaint.assignedStaff != null ? 'Staff #' + complaint.assignedStaff : 'Awaiting Assignment'}">
+                                        Awaiting...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attachment Card -->
+                    <div class="card" th:if="${complaint.attachmentPath != null}">
+                        <div class="card-header">
+                            <h2>Attachment</h2>
+                        </div>
+                        <div class="card-body"
+                            style="padding: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <i class="fa-solid fa-file-pdf" style="font-size: 2.5rem; color: #ef4444;"></i>
+                                <div>
+                                    <p style="font-weight: 700; font-size: 0.9rem;"
+                                        th:text="${complaint.attachmentPath}">filename.pdf</p>
+                                    <p style="font-size: 0.75rem; color: var(--text-muted);">Uploaded attachment preview
+                                    </p>
+                                </div>
+                            </div>
+                            <a th:href="@{'/uploads/' + ${complaint.attachmentPath}}" class="btn btn-secondary"
+                                target="_blank">
+                                <i class="fa-solid fa-download"></i> Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Timeline History -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Track Activity</h2>
+                    </div>
+                    <div class="card-body" style="padding: 1.5rem;">
+                        <div class="history-list">
+                            <div class="history-item" th:each="h : ${history}">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    <span class="status-badge"
+                                        th:classappend="${h.status == 'New'} ? 'new' : (${h.status == 'Under Review'} ? 'review' : (${h.status == 'Resolved'} ? 'resolved' : 'denied'))"
+                                        th:text="${h.status}">New</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);"
+                                        th:text="${#temporals.format(h.timestamp, 'HH:mm - dd MMM')}">12:30 - Oct
+                                        12</span>
+                                </div>
+                                <p style="font-size: 0.85rem; font-weight: 600;" th:text="${h.note}">Note</p>
+                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;"
+                                    th:text="${h.description}">Description</p>
+                                <p
+                                    style="font-size: 0.7rem; font-weight: 700; color: var(--primary); margin-top: 0.5rem;">
+                                    <i class="fa-solid fa-user-check"></i> Updated by <span
+                                        th:text="${h.updatedBy}">User</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Feedback Form (If Resolved) -->
+            <div class="feedback-section animate-fade" th:if="${isResolved}">
+                <div th:if="${!hasFeedback}">
+                    <i class="fa-solid fa-face-smile"
+                        style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <h2 style="font-weight: 800;">How was your experience?</h2>
+                    <p>Since this issue is resolved, we'd love to hear your feedback.</p>
+
+                    <form th:action="@{/feedback}" method="post"
+                        style="max-width: 500px; margin: 2rem auto; text-align: left;">
+                        <input type="hidden" name="complaintId" th:value="${complaint.id}">
+                        <div class="star-rating" id="star-rating">
+                            <i class="fa-regular fa-star" data-value="1"></i>
+                            <i class="fa-regular fa-star" data-value="2"></i>
+                            <i class="fa-regular fa-star" data-value="3"></i>
+                            <i class="fa-regular fa-star" data-value="4"></i>
+                            <i class="fa-regular fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" name="rating" id="rating-input" value="1">
+
+                        <textarea name="comment" class="input-field"
+                            style="width: 100%; height: 100px; padding: 1rem; margin-bottom: 1rem;"
+                            placeholder="Share your thoughts..."></textarea>
+
+                        <button type="submit" class="btn btn-primary"
+                            style="width: 100%; justify-content: center;">Submit Feedback</button>
+                    </form>
+                </div>
+
+                <!-- Existing Feedback -->
+                <div th:if="${hasFeedback}">
+                    <div
+                        style="background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color); display: inline-block; text-align: left;">
+                        <p
+                            style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">
+                            Your Feedback</p>
+                        <div class="star-rating" style="justify-content: flex-start; font-size: 1rem;">
+                            <i class="fa-solid fa-star" th:each="i : ${#numbers.sequence(1, feedback.rating)}"></i>
+                            <i class="fa-regular fa-star" th:each="i : ${#numbers.sequence(feedback.rating + 1, 5)}"
+                                th:if="${feedback.rating < 5}"></i>
+                        </div>
+                        <p th:text="${feedback.comment}"
+                            style="font-style: italic; color: var(--text-main); margin-top: 0.5rem;">Comment...</p>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script>
+        // Star Rating Logic
+        const stars = document.querySelectorAll('#star-rating i');
+        const ratingInput = document.getElementById('rating-input');
+
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const val = parseInt(star.dataset.value);
+                ratingInput.value = val;
+                stars.forEach((s, idx) => {
+                    if (idx < val) {
+                        s.classList.replace('fa-regular', 'fa-solid');
+                    } else {
+                        s.classList.replace('fa-solid', 'fa-regular');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>

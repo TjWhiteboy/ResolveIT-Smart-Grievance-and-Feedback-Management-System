@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Complaints – ResolveIT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="app-wrapper">
+        <!-- Navbar -->
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+        <div style="display: flex;">
+            <!-- Sidebar -->
+            <div th:replace="~{fragments/sidebar-user :: sidebar('dashboard')}"></div>
+
+            <main class="main-container animate-fade">
+                <!-- Hero Summary Section -->
+                <section class="hero">
+                    <div class="welcome-msg">
+                        <h1>Hello, <span th:text="${userName != null ? userName : 'User'}">User</span></h1>
+                        <p>Manage and track your submitted complaints in real time.</p>
+                    </div>
+
+                    <div class="stats-row">
+                        <a th:href="@{/my-complaints(userId=${userId})}" class="stat-card total">
+                            <div class="stat-icon"><i class="fa-solid fa-folder" style="color: var(--text-muted);"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" th:text="${totalCount}">0</div>
+                                <div class="stat-label">Total Complaints</div>
+                            </div>
+                        </a>
+                        <a th:href="@{/my-complaints(userId=${userId}, status='Under Review')}"
+                            class="stat-card pending">
+                            <div class="stat-icon"><i class="fa-solid fa-clock"
+                                    style="color: var(--status-review);"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" th:text="${newCount + reviewCount}">0</div>
+                                <div class="stat-label">Pending</div>
+                            </div>
+                        </a>
+                        <a th:href="@{/my-complaints(userId=${userId}, status='In Progress')}"
+                            class="stat-card progress">
+                            <div class="stat-icon"><i class="fa-solid fa-spinner"
+                                    style="color: var(--status-progress);"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" th:text="${inProgressCount}">0</div>
+                                <div class="stat-label">In Progress</div>
+                            </div>
+                        </a>
+                        <a th:href="@{/my-complaints(userId=${userId}, status='Resolved')}" class="stat-card resolved">
+                            <div class="stat-icon"><i class="fa-solid fa-circle-check"
+                                    style="color: var(--status-resolved);"></i></div>
+                            <div class="stat-info">
+                                <div class="stat-value" th:text="${resolvedCount}">0</div>
+                                <div class="stat-label">Resolved</div>
+                            </div>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Action Bar -->
+                <div class="action-bar">
+                    <div class="action-left">
+                        <a th:href="@{/complaint(user=${userId})}" class="btn btn-primary">
+                            <i class="fa-solid fa-plus"></i> New Complaint
+                        </a>
+                        <a th:href="@{/my-complaints/export(userId=${userId})}" class="btn btn-secondary">
+                            <i class="fa-solid fa-file-export"></i> Export CSV
+                        </a>
+                    </div>
+
+                    <form class="action-right" th:action="@{/my-complaints}" method="get">
+                        <input type="hidden" name="userId" th:value="${userId}">
+                        <div class="input-box">
+                            <i class="fa-solid fa-search"></i>
+                            <input type="text" name="search" th:value="${search}" class="input-field"
+                                placeholder="Search title...">
+                        </div>
+                        <select name="status" class="select-field">
+                            <option value="">Status: All</option>
+                            <option value="New" th:selected="${status == 'New'}">New</option>
+                            <option value="Under Review" th:selected="${status == 'Under Review'}">Under Review</option>
+                            <option value="In Progress" th:selected="${status == 'In Progress'}">In Progress</option>
+                            <option value="Resolved" th:selected="${status == 'Resolved'}">Resolved</option>
+                            <option value="Denied" th:selected="${status == 'Denied'}">Denied</option>
+                        </select>
+                        <button type="submit" class="btn btn-secondary">Filter</button>
+                        <a th:href="@{/my-complaints(userId=${userId})}" class="btn btn-secondary"
+                            title="Reset Filters">
+                            <i class="fa-solid fa-rotate-left"></i>
+                        </a>
+                    </form>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="dashboard-grid">
+
+                    <!-- Left Panel: Complaint List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>My Complaints List</h2>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);"
+                                th:text="${totalItems} + ' complaints filtered'">0 found</div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Complaint Title</th>
+                                        <th>Category</th>
+                                        <th>Priority</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="c : ${complaints}">
+                                        <td><span style="font-weight:700; color:#cbd5e1"
+                                                th:text="'#' + ${c.id}">#01</span></td>
+                                        <td>
+                                            <div style="font-weight:600;" th:text="${c.title}">Complaint Title</div>
+                                        </td>
+                                        <td th:text="${c.category}">Category</td>
+                                        <td>
+                                            <div class="priority-cell">
+                                                <div class="priority-dot"
+                                                    th:classappend="${c.priority == 'Critical' or c.priority == 'High'} ? 'high' : (${c.priority == 'Normal' or c.priority == 'Medium'} ? 'medium' : 'low')">
+                                                </div>
+                                                <span th:text="${c.priority}">Normal</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge"
+                                                th:classappend="${c.status == 'New'} ? 'new' : (${c.status == 'Under Review'} ? 'review' : (${c.status == 'In Progress'} ? 'progress' : (${c.status == 'Resolved'} ? 'resolved' : 'denied')))"
+                                                th:text="${c.status}">New</span>
+                                        </td>
+                                        <td>
+                                            <span style="font-size: 0.8rem; color: var(--text-muted);"
+                                                th:text="${c.createdAt != null ? #temporals.format(c.createdAt, 'dd MMM yyyy') : '—'}">12
+                                                Oct 2023</span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{'/complaint/' + ${c.id} + '?userId=' + ${userId}}"
+                                                class="action-btn">View Details</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <!-- Empty State -->
+                            <div class="empty-state" th:if="${#lists.isEmpty(complaints)}">
+                                <div class="empty-img">🔍</div>
+                                <h3>No complaints found</h3>
+                                <p>Try adjusting your search filters or file a new complaint.</p>
+                                <a th:href="@{/complaint(user=${userId})}" class="btn btn-primary">File New
+                                    Complaint</a>
+                            </div>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="pagination" th:if="${totalPages > 1}">
+                            <a th:href="@{/my-complaints(userId=${userId}, search=${search}, status=${status}, page=${currentPage - 1})}"
+                                class="btn btn-secondary"
+                                th:classappend="${currentPage == 0} ? 'disabled' : ''">Prev</a>
+
+                            <div style="display: flex; gap: 0.5rem; align-items: center; margin: 0 1rem;">
+                                <span th:text="'Page ' + ${currentPage + 1} + ' of ' + ${totalPages}"
+                                    style="font-size: 0.85rem; font-weight: 600;"></span>
+                            </div>
+
+                            <a th:href="@{/my-complaints(userId=${userId}, search=${search}, status=${status}, page=${currentPage + 1})}"
+                                class="btn btn-secondary"
+                                th:classappend="${currentPage >= totalPages - 1} ? 'disabled' : ''">Next</a>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Insights -->
+                    <div class="stack">
+
+                        <!-- Chart Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Status Distribution</h2>
+                            </div>
+                            <div class="card-body" style="padding: 1.5rem;">
+                                <div class="chart-container">
+                                    <canvas id="statusChart" th:data-new="${newCount}" th:data-review="${reviewCount}"
+                                        th:data-progress="${inProgressCount}" th:data-resolved="${resolvedCount}"
+                                        th:data-denied="${deniedCount}"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Recent Activity</h2>
+                            </div>
+                            <div class="card-body" style="padding: 1rem 1.5rem;">
+                                <ul class="activity-list">
+                                    <li class="activity-item" th:each="rc : ${recentComplaints}">
+                                        <div class="activity-icon">
+                                            <i class="fa-solid fa-circle-info"
+                                                th:style="'color:' + (${rc.status == 'Resolved'} ? 'var(--status-resolved)' : 'var(--primary)')"></i>
+                                        </div>
+                                        <div class="activity-content">
+                                            <p th:text="${rc.title}"
+                                                style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; font-weight: 600;">
+                                                Complaint Title</p>
+                                            <span th:text="'Status: ' + ${rc.status}">Status: Resolved</span>
+                                        </div>
+                                    </li>
+                                    <li class="activity-item" th:if="${#lists.isEmpty(recentComplaints)}">
+                                        <p
+                                            style="font-size: 0.85rem; color: var(--text-muted); text-align: center; width: 100%;">
+                                            No recent activity.</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- SLA Tracker -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Health Analytics</h2>
+                            </div>
+                            <div class="card-body" style="padding: 1.5rem;">
+                                <div class="sla-item">
+                                    <div class="sla-header">
+                                        <span>Resolution Rate</span>
+                                        <span
+                                            th:text="${totalCount > 0 ? (resolvedCount * 100 / totalCount) + '%' : '0%'}">85%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill"
+                                            th:style="'width:' + ${totalCount > 0 ? (resolvedCount * 100 / totalCount) + '%' : '0%'}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div
+                                    style="margin-top: 1rem; text-align: center; background: var(--bg-body); padding: 0.75rem; border-radius: 8px;">
+                                    <p style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Overall
+                                        Status</p>
+                                    <p style="font-size: 1.1rem; font-weight: 800; color: var(--status-resolved);">
+                                        HEALTHY</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Help Card -->
+                        <div class="help-card">
+                            <i class="fa-solid fa-headset" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                            <h3>Need Support?</h3>
+                            <p>Our dedicated team is here to help you solve your issues faster.</p>
+                            <a href="mailto:support@resolveit.com" class="btn"
+                                style="background: rgba(255,255,255,0.1); color:#fff; border: 1px solid rgba(255,255,255,0.2); width:100%;">Contact
+                                Support</a>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <a th:href="@{/complaint(user=${userId})}" class="fab" title="File New Complaint">
+        <i class="fa-solid fa-plus"></i>
+    </a>
+
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        let token = /*[[${token}]]*/ null;
+        if (token) {
+            localStorage.setItem("jwtToken", token);
+        }
+        /*]]>*/
+    </script>
+</body>
+
+</html>

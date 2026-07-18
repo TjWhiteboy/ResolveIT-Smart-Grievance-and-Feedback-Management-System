@@ -1,310 +1,304 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Submit Complaint - ResolvIt</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File New Complaint – ResolveIT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/profile.css}">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
 
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
+        .complaint-card {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-    .container {
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 500px;
-    }
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
 
-    h2 {
-      color: #333;
-      margin-bottom: 30px;
-      text-align: center;
-    }
+        @media (max-width: 768px) {
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    .form-group {
-      margin-bottom: 20px;
-    }
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            background: var(--bg-body);
+            transition: all 0.3s;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
 
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #333;
-      font-weight: bold;
-    }
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
 
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1em;
-      font-family: Arial, sans-serif;
-      transition: border-color 0.3s;
-    }
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
 
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: #667eea;
-      box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
-    }
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
 
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
+        .radio-option {
+            flex: 1;
+            position: relative;
+        }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #11998e;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      font-size: 1.1em;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
+        .radio-option input {
+            display: none;
+        }
 
-    button:hover {
-      background: #0f8a7a;
-    }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: var(--bg-body);
+        }
 
-    .links {
-      margin-top: 20px;
-      text-align: center;
-    }
+        .radio-option input:checked+.radio-label {
+            border-color: var(--primary);
+            background: var(--primary-light);
+            color: var(--primary);
+        }
 
-    .links a {
-      color: #667eea;
-      text-decoration: none;
-      margin: 0 10px;
-      transition: color 0.3s;
-    }
+        .char-counter {
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
 
-    .links a:hover {
-      color: #5568d3;
-      text-decoration: underline;
-    }
-
-    .upload-section {
-      margin-bottom: 20px;
-    }
-
-    .upload-section label {
-      display: block;
-      margin-bottom: 8px;
-      color: #333;
-      font-weight: bold;
-      font-size: 1em;
-    }
-
-    .upload-box {
-      border: 2px dashed #ccc;
-      border-radius: 8px;
-      padding: 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s;
-      background: #fafafa;
-    }
-
-    .upload-box:hover {
-      border-color: #667eea;
-      background: #f0f2ff;
-    }
-
-    .upload-box h4 {
-      color: #333;
-      margin-bottom: 6px;
-      font-size: 1em;
-    }
-
-    .upload-box p {
-      color: #888;
-      font-size: 0.85em;
-      margin-bottom: 14px;
-    }
-
-    .upload-btn {
-      display: inline-block;
-      padding: 8px 22px;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.9em;
-      color: #333;
-      transition: all 0.2s;
-    }
-
-    .upload-btn:hover {
-      border-color: #667eea;
-      color: #667eea;
-    }
-
-    #file-name {
-      margin-top: 10px;
-      font-size: 0.85em;
-      color: #11998e;
-      font-weight: bold;
-    }
-
-    .visibility-group {
-      display: flex;
-      gap: 16px;
-      margin-top: 6px;
-    }
-
-    .visibility-option {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border: 2px solid #ddd;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: border-color 0.3s, background 0.3s;
-    }
-
-    .visibility-option:has(input:checked) {
-      border-color: #667eea;
-      background: #f0f2ff;
-    }
-
-    .visibility-option input[type="radio"] {
-      width: 18px;
-      height: 18px;
-      accent-color: #667eea;
-      flex-shrink: 0;
-    }
-
-    .visibility-label-text strong {
-      display: block;
-      font-size: 0.95em;
-      color: #333;
-    }
-
-    .visibility-label-text span {
-      font-size: 0.78em;
-      color: #888;
-    }
-  </style>
+        .char-counter.limit {
+            color: var(--status-denied);
+        }
+    </style>
 </head>
 
-<body>
+<body data-theme="light">
 
-  <div class="container">
-    <h2>Submit Complaint</h2>
+    <div class="app-wrapper">
+        <!-- Navbar -->
+        <div th:replace="~{fragments/topbar :: topbar}"></div>
 
-    <form id="complaintForm" action="/form/complaint" method="post" enctype="multipart/form-data">
-      <div class="form-group">
-        <label for="subject">Subject:</label>
-        <input type="text" id="subject" name="title" placeholder="Enter complaint subject" required>
-      </div>
+        <div style="display: flex;">
+            <!-- Sidebar -->
+            <div th:replace="~{fragments/sidebar-user :: sidebar('new')}"></div>
 
-      <div class="form-group">
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" placeholder="Describe your complaint in detail"
-          required></textarea>
-      </div>
+            <main class="main-container animate-fade">
 
-      <div class="form-group">
-        <label for="category">Category:</label>
-        <input type="text" id="category" name="category" placeholder="e.g., Service, Product, Other" required>
-      </div>
+                <div class="page-header">
+                    <div>
+                        <h1 style="font-size: 1.875rem; font-weight: 800;">File New Complaint</h1>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">Submit a grievance
+                            or issue to our support team.</p>
+                    </div>
+                    <a th:href="@{/my-complaints(userId=${userId})}" class="btn btn-secondary">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
 
-      <div class="form-group">
-        <label for="urgency">Urgency Level:</label>
-        <select id="urgency" name="urgency" title="Select urgency level" required>
-          <option value="">-- Select --</option>
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-      </div>
+                <!-- Complaint Form -->
+                <div class="card complaint-card">
+                    <div class="card-body" style="padding: 2.5rem;">
 
-      <div class="form-group">
-        <label>Visibility:</label>
-        <div class="visibility-group">
-          <label class="visibility-option">
-            <input type="radio" name="visibility" value="Public" checked>
-            <div class="visibility-label-text">
-              <strong>🌐 Public</strong>
-              <span>Your name will be visible</span>
-            </div>
-          </label>
-          <label class="visibility-option">
-            <input type="radio" name="visibility" value="Anonymous">
-            <div class="visibility-label-text">
-              <strong>🕵️ Anonymous</strong>
-              <span>Your identity will be hidden</span>
-            </div>
-          </label>
+                        <form th:action="@{/form/complaint}" method="POST" enctype="multipart/form-data"
+                            id="complaintForm" class="profile-form">
+                            <input type="hidden" name="userId" th:value="${userId != null ? userId : '0'}">
+
+                            <!-- Title -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label>Complaint Title <span style="color:red">*</span></label>
+                                <input type="text" name="title" id="titleInput"
+                                    placeholder="Briefly summarize the issue (e.g. Server downtime in Zone B)" required
+                                    autofocus>
+                            </div>
+
+                            <!-- Layout Grid for Category & Urgency -->
+                            <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+                                <div class="form-group">
+                                    <label>Category <span style="color:red">*</span></label>
+                                    <select name="category" class="input-field" required>
+                                        <option value="" disabled selected>Select a category...</option>
+                                        <option value="Technical">Technical</option>
+                                        <option value="Service">Service</option>
+                                        <option value="Billing">Billing</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Priority / Urgency <span style="color:red">*</span></label>
+                                    <select name="urgency" class="input-field" required>
+                                        <option value="Low">Low</option>
+                                        <option value="Medium" selected>Medium</option>
+                                        <option value="High">High</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="form-group full-width" style="margin-bottom: 1.5rem;">
+                                <label>Detailed Description <span style="color:red">*</span></label>
+                                <textarea name="description" id="descInput" rows="6"
+                                    placeholder="Provide as much detail as possible to help us resolve your issue..."
+                                    required></textarea>
+                                <div class="char-counter" id="charCount">0 / 2000 characters</div>
+                            </div>
+
+                            <!-- Visibility Options -->
+                            <div class="form-group full-width" style="margin-bottom: 2rem;">
+                                <label>Visibility Setting <span style="color:red">*</span></label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="vis-public" name="visibility" value="Public" checked>
+                                        <label class="radio-label" for="vis-public">
+                                            <i class="fa-solid fa-globe"></i> Public
+                                        </label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="vis-anon" name="visibility" value="Anonymous">
+                                        <label class="radio-label" for="vis-anon">
+                                            <i class="fa-solid fa-user-secret"></i> Anonymous
+                                        </label>
+                                    </div>
+                                </div>
+                                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;"><i
+                                        class="fa-solid fa-circle-info"></i> Anonymous complaints hide your real name
+                                    from public boards, but administrators can still verify your identity.</p>
+                            </div>
+
+                            <!-- Drag and Drop Attachment -->
+                            <div class="form-group full-width" style="margin-bottom: 2.5rem;">
+                                <label>Supporting Attachment (Optional)</label>
+                                <div class="upload-area" id="drop-zone">
+                                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                                    <h3>Click or drag file to upload</h3>
+                                    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">
+                                        Supports JPG, PNG, PDF formats up to 5MB.</p>
+                                    <input type="file" id="file-upload" name="attachment" style="display: none;"
+                                        accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                                    <div id="file-name"
+                                        style="margin-top: 1rem; font-weight: 700; color: var(--primary); display: none;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div
+                                style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                                <a th:href="@{/my-complaints(userId=${userId})}" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="fa-solid fa-paper-plane"></i> Submit Complaint
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </main>
         </div>
-      </div>
-
-      <input type="hidden" id="userId" name="userId" value="0">
-
-      <div class="upload-section">
-        <label>Attachments (Optional)</label>
-        <div class="upload-box" onclick="document.getElementById('attachment').click()">
-          <h4>Add Media</h4>
-          <p>Attach images or files to support your complaint.</p>
-          <span class="upload-btn">Upload</span>
-          <input type="file" id="attachment" name="attachment" accept="image/*,.pdf,.doc,.docx,.txt"
-            style="display:none" onchange="showFileName(this)">
-          <div id="file-name"></div>
-        </div>
-      </div>
-
-      <button type="submit">Submit Complaint</button>
-    </form>
-
-    <script>
-      const urlParams = new URLSearchParams(window.location.search);
-      const userId = urlParams.get('user');
-      const hiddenInput = document.getElementById('userId');
-      if (hiddenInput && userId) {
-        hiddenInput.value = userId;
-      }
-
-      function showFileName(input) {
-        const fileNameDiv = document.getElementById('file-name');
-        if (input.files && input.files.length > 0) {
-          fileNameDiv.textContent = '📎 ' + input.files[0].name;
-        } else {
-          fileNameDiv.textContent = '';
-        }
-      }
-    </script>
-
-    <div class="links">
-      <a href="home.html">Home</a>
-      <a href="login.html">Logout</a>
     </div>
-  </div>
 
+    <script th:src="@{/js/common.js}"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Character counter
+            const descInput = document.getElementById('descInput');
+            const charCount = document.getElementById('charCount');
+            const maxLength = 2000;
+
+            descInput.addEventListener('input', function () {
+                const currentLen = this.value.length;
+                charCount.textContent = `${currentLen} / ${maxLength} characters`;
+                if (currentLen > maxLength) {
+                    charCount.classList.add('limit');
+                    this.value = this.value.substring(0, maxLength);
+                    charCount.textContent = `${maxLength} / ${maxLength} characters`;
+                } else {
+                    charCount.classList.remove('limit');
+                }
+            });
+
+            // Drag and drop attachment logic
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-upload');
+            const fileNameDisplay = document.getElementById('file-name');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    updateFileName();
+                }
+            });
+
+            fileInput.addEventListener('change', updateFileName);
+
+            function updateFileName() {
+                if (fileInput.files.length > 0) {
+                    fileNameDisplay.innerHTML = `<i class="fa-solid fa-check-circle"></i> File selected: ${fileInput.files[0].name}`;
+                    fileNameDisplay.style.display = 'block';
+                } else {
+                    fileNameDisplay.style.display = 'none';
+                }
+            }
+
+            // Loading spinner on submit
+            const form = document.getElementById('complaintForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            form.addEventListener('submit', function () {
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+                submitBtn.style.opacity = '0.8';
+                submitBtn.style.pointerEvents = 'none';
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<nav th:fragment="topbar" th:with="isHome=${isHome ?: false}" class="navbar">
+    <div class="navbar-left">
+        <a th:href="@{/}" class="logo">
+            <img th:src="@{/images/resolveit_logo.png}" alt="ResolveIT Logo" style="height: 36px; width: auto; border-radius: 50%;">
+        </a>
+        <div class="page-title" th:if="${user != null and !isHome}" 
+             th:text="${pageTitle != null && !pageTitle.isEmpty() ? pageTitle : (user.role == 'ADMIN' ? 'Admin Dashboard' : (user.role == 'STAFF' ? 'Staff Dashboard' : 'User Dashboard'))}">Dashboard</div>
+        <div class="page-title" th:if="${user == null or isHome}">Welcome to ResolveIT</div>
+    </div>
+    
+    <div class="navbar-right">
+        <!-- Staff Attendance Widget (Only for Staff) -->
+        <div th:if="${user != null and user.role == 'STAFF' and !isHome}" class="attendance-nav-item">
+            <div class="attendance-status-pill" th:classappend="${isCheckedIn ?: false} ? 'active' : (${hasCheckedOut ?: false} ? 'completed' : '')">
+                <span th:if="${!(isCheckedIn ?: false) and !(hasCheckedOut ?: false)}">
+                    <form th:action="@{/staff/attendance/checkin}" method="post" style="display:inline;">
+                        <button type="submit" class="nav-att-btn checkin-btn" title="Click to Check In">
+                            <i class="fa-solid fa-play"></i> <span>Check In</span>
+                        </button>
+                    </form>
+                </span>
+                <span th:if="${isCheckedIn ?: false}">
+                    <form th:action="@{/staff/attendance/checkout}" method="post" style="display:inline;">
+                        <button type="submit" class="nav-att-btn checkout-btn" title="Click to Check Out">
+                            <i class="fa-solid fa-stop"></i> <span>Check Out</span>
+                        </button>
+                    </form>
+                </span>
+                <span th:if="${hasCheckedOut ?: false}" class="nav-att-label">
+                    <i class="fa-solid fa-circle-check"></i> <span>Shift Ended</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Dark Mode Toggle (Authenticated Only) -->
+        <button th:if="${user != null and !isHome}"
+                id="theme-toggle"
+                class="nav-tool theme-toggle-btn"
+                title="Toggle Dark Mode"
+                aria-label="Toggle dark/light mode">
+            <i class="fa-solid fa-moon" id="theme-icon-moon"></i>
+            <i class="fa-solid fa-sun"  id="theme-icon-sun"  style="display:none;"></i>
+        </button>
+
+        <!-- Notifications (Authenticated Only) -->
+        <div th:if="${user != null and !isHome}" class="notification-dropdown">
+            <button class="nav-tool" id="notif-bell" title="Notifications">
+                <i class="fa-solid fa-bell"></i>
+                <span id="notif-badge" class="unread-badge" 
+                      th:style="${unreadCount != null and unreadCount > 0} ? 'display: flex;' : 'display: none;'"
+                      th:text="${unreadCount != null and unreadCount > 9 ? '9+' : unreadCount}"></span>
+            </button>
+            <div id="notif-menu" class="dropdown-menu">
+                <div class="dropdown-header">
+                    <span>Notifications</span>
+                    <button class="mark-all-read" id="mark-all-read">Mark all as read</button>
+                </div>
+                <div id="notif-list" class="notif-list">
+                    <!-- Loaded via JS -->
+                    <div class="notif-empty">No new notifications</div>
+                </div>
+                <!-- Dynamic View All Link Based on Role -->
+                <a th:href="${user != null and user.role == 'ADMIN'} ? @{/admin/notifications} : (${user != null and user.role == 'STAFF'} ? @{/staff/notifications} : @{/user/notifications})" 
+                   class="dropdown-footer-link">
+                    View All Notifications
+                </a>
+            </div>
+        </div>
+        <!-- User Profile Dropdown (Authenticated) -->
+        <div th:if="${user != null and !isHome}" class="profile-dropdown">
+            <div id="user-avatar" class="avatar">
+                <img th:if="${user.profilePicturePath != null}" th:src="${user.profilePicturePath}" alt="Avatar">
+                <span th:unless="${user.profilePicturePath != null}" 
+                      th:text="${userName != null ? #strings.substring(userName,0,1) : 'U'}">U</span>
+            </div>
+            
+            <div id="profile-dropdown-menu" class="dropdown-menu">
+                <div class="dropdown-header">
+                    <p class="user-name-text" th:text="${userName}">User Name</p>
+                    <p class="user-role-text" th:text="${user.role}">Member</p>
+                </div>
+                <div class="dropdown-divider"></div>
+                
+                <a th:href="${user.role == 'ADMIN'} ? @{/admin/profile} : (${user.role == 'STAFF'} ? @{/staff/profile} : @{/profile})" 
+                   class="dropdown-item">
+                    <i class="fa-solid fa-user"></i> My Profile
+                </a>
+                
+                <a th:href="@{/logout}" class="dropdown-item logout-btn-danger">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Guest Actions (Non-authenticated) -->
+        <div th:if="${user == null}" class="navbar-guest-actions" style="display:flex; gap:0.75rem;">
+            <a th:href="@{/login}" class="btn btn-secondary btn-sm" style="border-radius:8px;">Sign In</a>
+            <a th:href="@{/register}" class="btn btn-primary btn-sm" style="border-radius:8px;">Register</a>
+        </div>
+    </div>
+
+    <!-- Flash Messages (Optional) -->
+    <div th:if="${success}" id="flash-success" th:attr="data-flash-success=${success}" style="display:none;"></div>
+    <div th:if="${error}" id="flash-error" th:attr="data-flash-error=${error}" style="display:none;"></div>
+</nav>
+
+</body>
+</html>

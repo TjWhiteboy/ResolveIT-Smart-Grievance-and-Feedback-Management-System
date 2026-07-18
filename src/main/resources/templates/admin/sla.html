@@ -1,0 +1,162 @@
+<head th:replace="~{fragments/layout :: head(title='Escalation Dashboard')}">
+</head>
+
+<body class="bg-main">
+    <div th:replace="~{fragments/topbar :: topbar}"></div>
+
+    <div class="app-container">
+        <!-- Unified Sidebar -->
+        <div th:replace="~{fragments/sidebar :: sidebar('sla')}"></div>
+        
+        <main class="main-content animate-fade">
+            <div style="margin-bottom:2.5rem; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h1 style="font-size:2rem; font-weight:800;">Escalation Manager</h1>
+                    <p style="color:var(--text-muted); margin-top:0.25rem;">Review and resolve critical complaints officially escalated by staff members.</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin}" class="btn btn-primary" style="background:var(--secondary);">
+                        <i class="fa-solid fa-gauge-high"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-stat-grid">
+                <div class="admin-stat-card" style="border-left:5px solid #4f46e5;">
+                    <h3>Total</h3>
+                    <div class="val" th:text="${#lists.size(allEscalations)}">0</div>
+                </div>
+                <div class="admin-stat-card" style="border-left:5px solid #3b82f6;">
+                    <h3>Open</h3>
+                    <div class="val" th:text="${countOpen}">0</div>
+                </div>
+                <div class="admin-stat-card" style="border-left:5px solid #f59e0b;">
+                    <h3>In Review</h3>
+                    <div class="val" th:text="${countInReview}">0</div>
+                </div>
+                <div class="admin-stat-card" style="border-left:5px solid #ef4444;">
+                    <h3>Open Critical</h3>
+                    <div class="val" th:text="${allEscalations.stream().filter(e -> 'CRITICAL'.equals(e.severity) && 'OPEN'.equals(e.status)).count()}">0</div>
+                </div>
+                <div class="admin-stat-card" style="border-left:5px solid #10b981;">
+                    <h3>Resolved</h3>
+                    <div class="val" th:text="${countResolved}">0</div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm" style="border-radius:14px; overflow:hidden;">
+                <div class="card-header" style="padding:1.5rem; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+                    <h2 style="font-size:1.1rem; font-weight:800;">Escalated Complaints List</h2>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Ref</th>
+                                <th>Complaint Info</th>
+                                <th>Complainant</th>
+                                <th>Raised By</th>
+                                <th>Severity</th>
+                                <th>Status</th>
+                                <th>Date Raised</th>
+                                <th style="text-align:right;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="e : ${allEscalations}">
+                                <td th:text="'E-'+${e.id}" style="font-family:monospace; font-weight:700; color:var(--text-muted);"></td>
+                                <td>
+                                    <div style="font-weight:700; color:var(--text-main);" th:text="${e.complaint.title}">Complaint Title</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);" th:text="'UID: #'+${e.complaint.id}">Ref</div>
+                                </td>
+                                <td>
+                                    <div style="font-weight:600;" th:text="${e.complaint.userName}">User</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);" th:text="'ID: #'+${e.complaint.userId}">User ID</div>
+                                </td>
+                                <td>
+                                    <div th:if="${e.raisedBy != null}" style="display:flex; align-items:center; gap:10px;">
+                                        <div style="width:28px; height:28px; background:#f1f5f9; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:800; color:var(--primary);">
+                                            <span th:text="${#strings.substring(e.raisedBy.name,0,1)}">S</span>
+                                        </div>
+                                        <div style="font-size:0.85rem; font-weight:600;" th:text="${e.raisedBy.name}">Staff</div>
+                                    </div>
+                                    <div th:unless="${e.raisedBy != null}" style="color:var(--text-muted); font-size:0.85rem; font-style:italic;">
+                                        Unknown Staff (ID: 0)
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-pill" th:classappend="'severity-' + ${#strings.toLowerCase(e.severity)}" th:text="${e.severity}"></span>
+                                </td>
+                                <td>
+                                    <span class="status-pill" th:classappend="'status-' + ${#strings.toLowerCase(#strings.replace(e.status, '_', '-'))}" th:text="${e.status}"></span>
+                                </td>
+                                <td style="font-size:0.85rem;" th:text="${#temporals.format(e.createdAt, 'dd MMM yyyy')}"></td>
+                                <td style="text-align:right;">
+                                    <a th:href="@{/admin/sla/view/{id}(id=${e.id})}" class="btn btn-secondary btn-sm" style="border-radius:8px;">
+                                        <i class="fa-solid fa-eye"></i> Manage
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(allEscalations)}">
+                                <td colspan="7" style="text-align:center; padding:4rem; color:var(--text-muted);">
+                                    <i class="fa-solid fa-inbox" style="font-size:2.5rem; opacity:0.3; margin-bottom:1rem; display:block;"></i>
+                                    No escalation records to show.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .admin-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+        
+        .admin-stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .admin-stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+        .admin-stat-card h3 { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+        .admin-stat-card .val { font-size: 1.75rem; font-weight: 800; color: var(--text-main); }
+        
+        .severity-critical { color: #991b1b; background: #fee2e2; }
+        .severity-high { color: #b45309; background: #fef3c7; }
+        .severity-medium { color: #1e40af; background: #dbeafe; }
+        
+        .status-pill { border-radius: 6px; padding: 4px 10px; font-weight: 800; font-size: 0.7rem; text-transform: uppercase; }
+        .status-open { background: #dbeafe; color: #1e40af; }
+        .status-in-review { background: #ffedd5; color: #9a3412; }
+        .status-approved { background: #f3e8ff; color: #6b21a8; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-resolved { background: #dcfce7; color: #166534; }
+
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { text-align: left; padding: 1rem 1.5rem; background: var(--bg-main); font-size: 0.75rem; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
+        .data-table td { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+
+        /* Dark Mode Adjustments for Internal Styles */
+        [data-theme="dark"] .severity-critical { color: #fca5a5; background: rgba(153, 27, 27, 0.3); }
+        [data-theme="dark"] .severity-high { color: #fcd34d; background: rgba(180, 83, 9, 0.3); }
+        [data-theme="dark"] .severity-medium { color: #93c5fd; background: rgba(30, 64, 175, 0.3); }
+        
+        [data-theme="dark"] .status-open { background: rgba(30, 64, 175, 0.2); color: #93c5fd; }
+        [data-theme="dark"] .status-in-review { background: rgba(154, 52, 18, 0.2); color: #fdba74; }
+        [data-theme="dark"] .status-resolved { background: rgba(22, 101, 52, 0.2); color: #86efac; }
+        [data-theme="dark"] .status-rejected { background: rgba(153, 27, 27, 0.2); color: #fca5a5; }
+    </style>
+
+
+    <div th:replace="~{fragments/layout :: footer}"></div>
+</body>
+</html>

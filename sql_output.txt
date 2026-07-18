@@ -1,7 +1,0 @@
-﻿id	name	email	password
-1	thikash	thikash@gmail.com	thikash77
-2	thikash	thikash@gmail.com	123456
-3	TestUser	test@example.com	testpass
-id	user_id	subject	description	category	urgency	status	title
-1	0	NULL	sdger	sgfeasr	Low	Open	aergerg
-2	1	NULL	This is a test complaint	Service	High	Open	Test Issue
