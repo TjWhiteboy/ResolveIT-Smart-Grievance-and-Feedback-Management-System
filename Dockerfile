@@ -1,17 +1,12 @@
-FROM maven:3.9.9-eclipse-temurin-21 AS build
-
-WORKDIR /app
-
-COPY . .
-
-RUN mvn clean package -DskipTests
-
 FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
-COPY --from=build /app/target/*.jar app.jar
+# Copy the generated JAR into the container
+COPY target/*.jar app.jar
 
-EXPOSE 8080
+# We don't hardcode a port in the ENTRYPOINT, we let Spring Boot read the PORT env var
+# but we expose a default port for documentation
+EXPOSE 9090
 
-ENTRYPOINT ["java","-Dserver.port=8080","-jar","app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

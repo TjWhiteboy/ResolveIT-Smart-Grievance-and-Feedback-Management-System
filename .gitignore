@@ -93,3 +93,9 @@ desktop.ini
 *.ear
 hs_err_pid*
 replay_pid*
+
+# Environment Variables
+.env
+
+# Application Logs
+logs/

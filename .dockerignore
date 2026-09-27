@@ -1,0 +1,25 @@
+# Build directories
+
+# Git
+.git/
+.gitignore
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+*.project
+*.classpath
+*.settings/
+
+# Logs
+*.log
+logs/
+
+# Env and local files
+.env
+uploads/
+
+# OS generated files
+.DS_Store
+Thumbs.db
