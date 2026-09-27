@@ -1,5 +1,6 @@
 # 🛠️ ResolveIT
 ### Smart Grievance Management System
+🔗 **[ResolveIT – Live Application](https://your-render-url.onrender.com](https://resolveit-smart-grievance-and-feedback.onrender.com)**
 
 A full-stack grievance management platform built with **Java Spring Boot** that streamlines complaint submission, tracking, and resolution across **Users**, **Staff**, and **Admin** roles — with JWT-based security, role-based dashboards, SLA monitoring, escalation handling, email notifications, and analytics.
 
